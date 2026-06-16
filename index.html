@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>秋天画图工具</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    min-height: 100vh;
+    color: #e0e0e0;
+    display: flex;
+    justify-content: center;
+    padding: 30px 20px;
+  }
+  .container { width: 100%; max-width: 720px; }
+  h1 {
+    text-align: center; font-size: 28px; margin-bottom: 8px;
+    background: linear-gradient(90deg, #e94560, #f5a623);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .subtitle { text-align: center; color: #888; font-size: 13px; margin-bottom: 28px; }
+  .card {
+    background: rgba(255,255,255,0.06); backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 16px;
+    padding: 28px; margin-bottom: 20px;
+  }
+  label { display: block; font-size: 13px; color: #aaa; margin-bottom: 6px; font-weight: 500; }
+  input[type="text"], select, textarea {
+    width: 100%; padding: 10px 14px; background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.12); border-radius: 8px;
+    color: #fff; font-size: 14px; outline: none; transition: border-color 0.2s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: #e94560; }
+  textarea { resize: vertical; min-height: 80px; font-family: inherit; }
+  select option { background: #1a1a2e; color: #fff; }
+  .row { display: flex; gap: 14px; margin-bottom: 16px; }
+  .row > div { flex: 1; }
+  .field { margin-bottom: 16px; }
+  .btn {
+    width: 100%; padding: 14px; border: none; border-radius: 10px;
+    font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+    background: linear-gradient(135deg, #e94560, #c23152); color: #fff; letter-spacing: 1px;
+  }
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(233,69,96,0.35); }
+  .btn:active { transform: translateY(0); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+  .btn-outline {
+    background: transparent; border: 1px solid rgba(255,255,255,0.15);
+    color: #ccc; padding: 8px 16px; font-size: 13px; width: auto; letter-spacing: 0;
+  }
+  .btn-outline:hover { background: rgba(255,255,255,0.08); color: #fff; box-shadow: none; transform: none; }
+  .btn-outline.active { border-color: #e94560; color: #e94560; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 0; margin-bottom: 20px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
+  .tab {
+    flex: 1; padding: 12px; text-align: center; cursor: pointer; font-size: 14px; font-weight: 500;
+    background: rgba(0,0,0,0.2); color: #888; transition: all 0.2s; border: none;
+  }
+  .tab.active { background: rgba(233,69,96,0.2); color: #e94560; }
+  .tab:hover:not(.active) { background: rgba(255,255,255,0.05); color: #ccc; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* Ratio chips */
+  .ratio-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 6px;
+  }
+  .ratio-chip {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 8px 4px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(0,0,0,0.2); cursor: pointer; transition: all 0.2s;
+  }
+  .ratio-chip:hover { border-color: rgba(233,69,96,0.5); }
+  .ratio-chip.active { border-color: #e94560; background: rgba(233,69,96,0.12); }
+  .ratio-icon {
+    border: 1.5px solid #888; border-radius: 3px; transition: all 0.2s;
+  }
+  .ratio-chip.active .ratio-icon, .ratio-chip:hover .ratio-icon { border-color: #e94560; }
+  .ratio-chip .ratio-label { font-size: 11px; color: #aaa; }
+  .ratio-chip .ratio-val { font-size: 12px; color: #ccc; font-weight: 500; }
+  .ratio-chip.active .ratio-label, .ratio-chip.active .ratio-val { color: #e94560; }
+
+  /* Custom size */
+  .custom-size-input { display: none; margin-top: 10px; align-items: center; gap: 6px; }
+  .custom-size-input.show { display: flex; }
+  .custom-size-input input { width: 80px; text-align: center; padding: 8px 6px; }
+  .custom-size-input span { color: #888; font-size: 14px; flex-shrink: 0; }
+
+  /* Image upload */
+  .upload-area {
+    border: 2px dashed rgba(255,255,255,0.15); border-radius: 12px;
+    padding: 24px; text-align: center; cursor: pointer; transition: all 0.2s;
+    position: relative; overflow: hidden;
+  }
+  .upload-area:hover { border-color: rgba(233,69,96,0.5); background: rgba(233,69,96,0.03); }
+  .upload-area.has-image { padding: 8px; }
+  .upload-area input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer;
+  }
+  .upload-icon { font-size: 36px; margin-bottom: 8px; }
+  .upload-text { font-size: 13px; color: #888; }
+  .preview-img {
+    max-width: 100%; max-height: 300px; border-radius: 8px; display: none;
+  }
+  .upload-area.has-image .upload-icon,
+  .upload-area.has-image .upload-text { display: none; }
+  .upload-area.has-image .preview-img { display: block; margin: 0 auto; }
+  .remove-img {
+    display: none; position: absolute; top: 8px; right: 8px;
+    background: rgba(0,0,0,0.7); color: #e94560; border: none; border-radius: 50%;
+    width: 28px; height: 28px; cursor: pointer; font-size: 16px; line-height: 28px;
+  }
+  .upload-area.has-image .remove-img { display: block; }
+
+  /* Result */
+  .result-area {
+    text-align: center; min-height: 200px;
+    display: flex; align-items: center; justify-content: center; flex-direction: column;
+  }
+  .result-area img { max-width: 100%; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
+  .placeholder { color: #555; font-size: 14px; }
+  .spinner {
+    width: 40px; height: 40px;
+    border: 3px solid rgba(255,255,255,0.1); border-top-color: #e94560;
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { margin-top: 12px; color: #aaa; font-size: 13px; }
+  .actions { display: flex; gap: 10px; margin-top: 16px; justify-content: center; flex-wrap: wrap; }
+  .actions button {
+    padding: 8px 20px; border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.08);
+    color: #ccc; font-size: 13px; cursor: pointer; transition: all 0.2s;
+  }
+  .actions button:hover { background: rgba(255,255,255,0.15); color: #fff; }
+  .error-msg { color: #e94560; font-size: 13px; margin-top: 10px; word-break: break-all; }
+
+  /* History */
+  .history-item {
+    display: inline-block; margin: 6px; cursor: pointer; border-radius: 8px;
+    overflow: hidden; border: 2px solid transparent; transition: border-color 0.2s;
+  }
+  .history-item:hover { border-color: #e94560; }
+  .history-item img { width: 100px; height: 100px; object-fit: cover; display: block; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🎨 秋天画图工具</h1>
+  <p class="subtitle">支持 gpt-image-2 / gpt-image-2-vip / nano-banana 系列</p>
+
+  <div class="card">
+    <div class="field">
+      <label>🔑 API Key</label>
+      <input type="text" id="apiKey" value="" placeholder="请输入你的 API Key（sk-xxxxx）">
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('txt2img')">✏️ 文生图</button>
+      <button class="tab" onclick="switchTab('img2img')">🖼️ 图生图</button>
+    </div>
+
+    <!-- 文生图 -->
+    <div class="tab-panel active" id="panel-txt2img">
+      <div class="field">
+        <label>✏️ 提示词</label>
+        <textarea id="prompt" placeholder="描述你想要生成的图片，例如：一只可爱的猫咪在花园里晒太阳"></textarea>
+      </div>
+    </div>
+
+    <!-- 图生图 -->
+    <div class="tab-panel" id="panel-img2img">
+      <div class="field">
+        <label>📤 上传参考图</label>
+        <div class="upload-area" id="uploadArea">
+          <div class="upload-icon">📁</div>
+          <div class="upload-text">点击或拖拽图片到此处</div>
+          <img class="preview-img" id="previewImg">
+          <button class="remove-img" id="removeImg" onclick="removeImage(event)">×</button>
+          <input type="file" id="imageInput" accept="image/*" onchange="handleImageUpload(event)">
+        </div>
+      </div>
+      <div class="field">
+        <label>✏️ 希望如何改动</label>
+        <textarea id="img2imgPrompt" placeholder="描述你想对参考图做什么修改，例如：把背景换成海边，添加一顶帽子"></textarea>
+      </div>
+    </div>
+
+    <!-- 公共选项 -->
+    <div class="row" style="margin-top: 16px;">
+      <div>
+        <label>🤖 模型</label>
+        <select id="model">
+          <option value="gpt-image-2">gpt-image-2</option>
+          <option value="gpt-image-2-vip">gpt-image-2-vip</option>
+          <option value="nano-banana">nano-banana</option>
+          <option value="nano-banana-2">nano-banana-2</option>
+          <option value="nano-banana-pro">nano-banana-pro</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>📐 画面比例</label>
+      <div class="ratio-grid" id="ratioGrid">
+        <div class="ratio-chip active" data-val="1024x1024" onclick="pickRatio(this)">
+          <div class="ratio-icon" style="width:28px;height:28px"></div>
+          <span class="ratio-label">方形</span>
+          <span class="ratio-val">1:1</span>
+        </div>
+        <div class="ratio-chip" data-val="1280x1024" onclick="pickRatio(this)">
+          <div class="ratio-icon" style="width:32px;height:26px"></div>
+          <span class="ratio-label">横屏</span>
+          <span class="ratio-val">5:4</span>
+        </div>
+        <div class="ratio-chip" data-val="576x1024" onclick="pickRatio(this)">
+          <div class="ratio-icon" style="width:20px;height:35px"></div>
+          <span class="ratio-label">故事</span>
+          <span class="ratio-val">9:16</span>
+        </div>
+        <div class="ratio-chip" data-val="1344x576" onclick="pickRatio(this)">
+          <div class="ratio-icon" style="width:36px;height:15px"></div>
+          <span class="ratio-label">超宽屏</span>
+          <span class="ratio-val">21:9</span>
+        </div>
+        <div class="ratio-chip" data-val="1344x768" onclick="pickRatio(this)">
+          <div class="ratio-icon" style="width:36px;height:20px"></div>
+          <span class="ratio-label">宽屏</span>
+          <span class="ratio-val">16:9</span>
+        </div>
+        <div class="ratio-chip" data-val="1024x768" onclick="pickRatio(this)">
+          <div class="ratio-icon" style="width:32px;height:24px"></div>
+          <span class="ratio-label">横屏</span>
+          <span class="ratio-val">4:3</span>
+        </div>
+        <div class="ratio-chip" data-val="1216x816" onclick="pickRatio(this)">
+          <div class="ratio-icon" style="width:34px;height:22px"></div>
+          <span class="ratio-label">宽幅</span>
+          <span class="ratio-val">3:2</span>
+        </div>
+        <div class="ratio-chip" data-val="1024x1280" onclick="pickRatio(this)">
+          <div class="ratio-icon" style="width:26px;height:32px"></div>
+          <span class="ratio-label">标准</span>
+          <span class="ratio-val">4:5</span>
+        </div>
+        <div class="ratio-chip" data-val="768x1024" onclick="pickRatio(this)">
+          <div class="ratio-icon" style="width:24px;height:32px"></div>
+          <span class="ratio-label">竖版</span>
+          <span class="ratio-val">3:4</span>
+        </div>
+        <div class="ratio-chip" data-val="682x1024" onclick="pickRatio(this)">
+          <div class="ratio-icon" style="width:22px;height:33px"></div>
+          <span class="ratio-label">竖版</span>
+          <span class="ratio-val">2:3</span>
+        </div>
+        <div class="ratio-chip" data-val="custom" onclick="pickRatio(this)">
+          <div class="ratio-icon" style="width:28px;height:28px;border-style:dashed"></div>
+          <span class="ratio-label">自定义</span>
+          <span class="ratio-val">W×H</span>
+        </div>
+      </div>
+      <div class="custom-size-input" id="customSizeWrap">
+        <input type="text" id="customW" value="1024" placeholder="宽">
+        <span>×</span>
+        <input type="text" id="customH" value="1024" placeholder="高">
+      </div>
+      <input type="hidden" id="size" value="1024x1024">
+    </div>
+
+    <button class="btn" id="generateBtn" onclick="generate()">✨ 开始生成</button>
+  </div>
+
+  <div class="card">
+    <div class="result-area" id="result">
+      <p class="placeholder">生成的图片将在这里显示</p>
+    </div>
+  </div>
+
+  <div class="card" id="historyCard" style="display:none">
+    <label>📂 历史记录</label>
+    <div id="history"></div>
+  </div>
+</div>
+
+<script>
+const API_URL = "https://www.right.codes/draw/v1/images/generations";
+let historyList = [];
+let currentMode = "txt2img";
+let refImageBase64 = null;
+
+// Load saved key
+(function() {
+  const saved = localStorage.getItem("rc_draw_key");
+  if (saved) document.getElementById("apiKey").value = saved;
+})();
+
+// Tab switch
+function switchTab(mode) {
+  currentMode = mode;
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+  if (mode === "txt2img") {
+    document.querySelectorAll(".tab")[0].classList.add("active");
+    document.getElementById("panel-txt2img").classList.add("active");
+  } else {
+    document.querySelectorAll(".tab")[1].classList.add("active");
+    document.getElementById("panel-img2img").classList.add("active");
+  }
+}
+
+// Ratio picker
+function pickRatio(el) {
+  document.querySelectorAll(".ratio-chip").forEach(c => c.classList.remove("active"));
+  el.classList.add("active");
+  const wrap = document.getElementById("customSizeWrap");
+  if (el.dataset.val === "custom") {
+    wrap.classList.add("show");
+    updateCustomSize();
+  } else {
+    wrap.classList.remove("show");
+    document.getElementById("size").value = el.dataset.val;
+  }
+}
+function updateCustomSize() {
+  const w = document.getElementById("customW").value.trim() || "1024";
+  const h = document.getElementById("customH").value.trim() || "1024";
+  document.getElementById("size").value = w + "x" + h;
+}
+document.getElementById("customW").addEventListener("input", updateCustomSize);
+document.getElementById("customH").addEventListener("input", updateCustomSize);
+
+// Image upload
+function handleImageUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    refImageBase64 = ev.target.result;
+    document.getElementById("previewImg").src = refImageBase64;
+    document.getElementById("uploadArea").classList.add("has-image");
+  };
+  reader.readAsDataURL(file);
+}
+function removeImage(e) {
+  e.stopPropagation();
+  e.preventDefault();
+  refImageBase64 = null;
+  document.getElementById("previewImg").src = "";
+  document.getElementById("uploadArea").classList.remove("has-image");
+  document.getElementById("imageInput").value = "";
+}
+
+// Drag & drop
+const uploadArea = document.getElementById("uploadArea");
+uploadArea.addEventListener("dragover", e => { e.preventDefault(); uploadArea.style.borderColor = "#e94560"; });
+uploadArea.addEventListener("dragleave", () => { uploadArea.style.borderColor = ""; });
+uploadArea.addEventListener("drop", e => {
+  e.preventDefault(); uploadArea.style.borderColor = "";
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith("image/")) {
+    document.getElementById("imageInput").files = e.dataTransfer.files;
+    handleImageUpload({ target: { files: [file] } });
+  }
+});
+
+// Generate
+async function generate() {
+  const apiKey = document.getElementById("apiKey").value.trim();
+  const size = document.getElementById("size").value;
+  const model = document.getElementById("model").value;
+  const btn = document.getElementById("generateBtn");
+  const result = document.getElementById("result");
+
+  if (!apiKey) return showError("请输入 API Key");
+  localStorage.setItem("rc_draw_key", apiKey);
+
+  let prompt, body;
+  if (currentMode === "txt2img") {
+    prompt = document.getElementById("prompt").value.trim();
+    if (!prompt) return showError("请输入提示词");
+    body = { model, prompt, size, response_format: "url" };
+  } else {
+    prompt = document.getElementById("img2imgPrompt").value.trim();
+    if (!refImageBase64) return showError("请先上传参考图");
+    if (!prompt) return showError("请输入你希望如何改动");
+    body = { model, prompt, size, response_format: "url", image: [refImageBase64] };
+  }
+
+  btn.disabled = true;
+  btn.textContent = "⏳ 生成中，请稍候...";
+  result.innerHTML = `
+    <div class="spinner"></div>
+    <p class="loading-text">正在生成图片，大约需要 10-30 秒...</p>
+  `;
+
+  try {
+    const resp = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + apiKey,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body)
+    });
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+
+    const url = data.data[0].url;
+    const tokens = data.usage ? data.usage.total_tokens : "N/A";
+
+    result.innerHTML = `
+      <img src="${url}" alt="生成的图片" onclick="window.open('${url}','_blank')" style="cursor:pointer" title="点击在新窗口打开">
+      <div class="actions">
+        <button onclick="window.open('${url}','_blank')">🔍 新窗口查看</button>
+        <button onclick="downloadImg('${url}')">💾 下载图片</button>
+        <button onclick="copyUrl('${url}')">📋 复制链接</button>
+      </div>
+      <p style="color:#666;font-size:12px;margin-top:10px">模型: ${model} · 消耗 tokens: ${tokens}</p>
+    `;
+
+    historyList.unshift({ url, prompt, model });
+    renderHistory();
+  } catch (err) {
+    result.innerHTML = `<p class="error-msg">❌ ${err.message}</p>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "✨ 开始生成";
+  }
+}
+
+function showError(msg) {
+  document.getElementById("result").innerHTML = `<p class="error-msg">⚠️ ${msg}</p>`;
+}
+function downloadImg(url) {
+  const a = document.createElement("a");
+  a.href = url; a.download = "draw_" + Date.now() + ".png"; a.target = "_blank"; a.click();
+}
+function copyUrl(url) {
+  navigator.clipboard.writeText(url).then(() => alert("链接已复制！")).catch(() => prompt("请手动复制：", url));
+}
+function renderHistory() {
+  const card = document.getElementById("historyCard");
+  const container = document.getElementById("history");
+  if (!historyList.length) { card.style.display = "none"; return; }
+  card.style.display = "block";
+  container.innerHTML = historyList.map(item =>
+    `<span class="history-item" title="${item.model}: ${item.prompt}" onclick="window.open('${item.url}','_blank')">
+      <img src="${item.url}" alt="${item.prompt}">
+    </span>`
+  ).join("");
+}
+
+// Ctrl+Enter
+document.addEventListener("keydown", e => {
+  if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) generate();
+});
+</script>
+</body>
+</html>
