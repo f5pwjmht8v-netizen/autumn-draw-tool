@@ -140,13 +140,41 @@
   }
   .result-area img { max-width: 100%; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
   .placeholder { color: #555; font-size: 14px; }
-  .spinner {
-    width: 40px; height: 40px;
-    border: 3px solid rgba(255,255,255,0.1); border-top-color: #e94560;
-    border-radius: 50%; animation: spin 0.8s linear infinite;
+  /* Loading UI */
+  .loading-wrap { text-align: center; width: 100%; padding: 20px 0; }
+  .loading-anim {
+    width: 60px; height: 60px; margin: 0 auto 16px;
+    position: relative;
+  }
+  .loading-anim .ring {
+    width: 100%; height: 100%; border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.06);
+    border-top-color: #e94560; border-right-color: #f5a623;
+    animation: spin 1s linear infinite;
+  }
+  .loading-anim .icon {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 24px; animation: pulse 2s ease-in-out infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .loading-text { margin-top: 12px; color: #aaa; font-size: 13px; }
+  @keyframes pulse { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
+  .loading-title { font-size: 15px; color: #e0e0e0; margin-bottom: 6px; }
+  .loading-timer { font-size: 22px; font-weight: 600; color: #e94560; margin-bottom: 12px; font-variant-numeric: tabular-nums; }
+  .loading-bar-bg {
+    width: 80%; max-width: 300px; height: 4px; margin: 0 auto 12px;
+    background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden;
+  }
+  .loading-bar {
+    height: 100%; border-radius: 2px; background: linear-gradient(90deg, #e94560, #f5a623);
+    width: 0%; transition: width 0.5s ease;
+  }
+  .loading-tip { font-size: 12px; color: #666; margin-bottom: 16px; min-height: 16px; }
+  .cancel-btn {
+    padding: 6px 20px; border-radius: 6px; font-size: 12px; cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05);
+    color: #888; transition: all 0.2s;
+  }
+  .cancel-btn:hover { background: rgba(233,69,96,0.15); border-color: #e94560; color: #e94560; }
   .actions { display: flex; gap: 10px; margin-top: 16px; justify-content: center; flex-wrap: wrap; }
   .actions button {
     padding: 8px 20px; border-radius: 8px;
@@ -381,6 +409,22 @@ let currentMode = "txt2img";
 let refImageBase64 = null;
 let selectedPresets = new Set();
 let lockOptions = { preserve_face: true, preserve_expression: true, preserve_skin_color: true };
+let currentAbort = null;
+let loadingTimer = null;
+let loadingSeconds = 0;
+
+const loadingTips = [
+  "AI 正在理解你的创意意图...",
+  "正在调配色彩与光影...",
+  "画笔飞舞中，请稍候...",
+  "细节正在一点点浮现...",
+  "灵感碰撞产生火花...",
+  "正在精心打磨每一处细节...",
+  "大师级作品需要一点时间...",
+  "构图与色调正在融合...",
+  "画面正在逐渐成型...",
+  "最后的润色阶段..."
+];
 
 // Load saved key
 (function() {
@@ -520,6 +564,53 @@ uploadArea.addEventListener("drop", e => {
   }
 });
 
+// Loading UI
+function showLoading() {
+  const result = document.getElementById("result");
+  loadingSeconds = 0;
+  const tipIdx = Math.floor(Math.random() * loadingTips.length);
+  result.innerHTML = `
+    <div class="loading-wrap">
+      <div class="loading-anim"><div class="ring"></div><div class="icon">🎨</div></div>
+      <div class="loading-title">正在生成图片...</div>
+      <div class="loading-timer" id="loadingTimer">0s</div>
+      <div class="loading-bar-bg"><div class="loading-bar" id="loadingBar"></div></div>
+      <div class="loading-tip" id="loadingTip">${loadingTips[tipIdx]}</div>
+      <button class="cancel-btn" onclick="cancelGenerate()">✕ 取消生成</button>
+    </div>
+  `;
+  loadingTimer = setInterval(() => {
+    loadingSeconds++;
+    const el = document.getElementById("loadingTimer");
+    const bar = document.getElementById("loadingBar");
+    const tip = document.getElementById("loadingTip");
+    if (el) el.textContent = loadingSeconds + "s";
+    // Progress: fast at start, slow near end (fake progress up to 90%)
+    if (bar) {
+      const pct = Math.min(90, (1 - Math.exp(-loadingSeconds / 20)) * 100);
+      bar.style.width = pct + "%";
+    }
+    // Rotate tips every 8 seconds
+    if (tip && loadingSeconds % 8 === 0) {
+      tip.style.opacity = 0;
+      setTimeout(() => {
+        if (tip) {
+          tip.textContent = loadingTips[Math.floor(Math.random() * loadingTips.length)];
+          tip.style.opacity = 1;
+        }
+      }, 300);
+    }
+  }, 1000);
+}
+
+function hideLoading() {
+  if (loadingTimer) { clearInterval(loadingTimer); loadingTimer = null; }
+}
+
+function cancelGenerate() {
+  if (currentAbort) currentAbort.abort();
+}
+
 // Generate
 async function generate() {
   const apiKey = document.getElementById("apiKey").value.trim();
@@ -544,17 +635,24 @@ async function generate() {
   }
 
   btn.disabled = true;
-  btn.textContent = "⏳ 生成中，请稍候...";
-  result.innerHTML = '<div class="spinner"></div><p class="loading-text">正在生成图片，大约需要 10-30 秒...</p>';
+  btn.textContent = "⏳ 生成中...";
+  currentAbort = new AbortController();
+  showLoading();
 
   try {
     const resp = await fetch(API_URL, {
       method: "POST",
       headers: { "Authorization": "Bearer " + apiKey, "Content-Type": "application/json" },
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
+      signal: currentAbort.signal
     });
     const data = await resp.json();
     if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+
+    hideLoading();
+    // Fill progress to 100%
+    const bar = document.getElementById("loadingBar");
+    if (bar) bar.style.width = "100%";
 
     const url = data.data[0].url;
     const tokens = data.usage ? data.usage.total_tokens : "N/A";
@@ -566,15 +664,21 @@ async function generate() {
         <button onclick="downloadImg('${url}')">💾 下载图片</button>
         <button onclick="copyUrl('${url}')">📋 复制链接</button>
       </div>
-      <p style="color:#666;font-size:12px;margin-top:10px">模型: ${model} · 消耗 tokens: ${tokens}</p>
+      <p style="color:#666;font-size:12px;margin-top:10px">模型: ${model} · 耗时: ${loadingSeconds}s · tokens: ${tokens}</p>
     `;
     historyList.unshift({ url, prompt, model });
     renderHistory();
   } catch (err) {
-    result.innerHTML = '<p class="error-msg">❌ ' + err.message + '</p>';
+    hideLoading();
+    if (err.name === "AbortError") {
+      result.innerHTML = '<p style="color:#888;font-size:13px">⏹ 已取消生成</p>';
+    } else {
+      result.innerHTML = '<p class="error-msg">❌ ' + err.message + '</p>';
+    }
   } finally {
     btn.disabled = false;
     btn.textContent = "✨ 开始生成";
+    currentAbort = null;
   }
 }
 
