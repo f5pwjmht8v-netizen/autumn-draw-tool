@@ -4,199 +4,134 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>秋天画图工具</title>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-    min-height: 100vh; color: #e0e0e0; display: flex; justify-content: center; padding: 30px 20px;
-  }
-  .container { width: 100%; max-width: 720px; }
-  h1 {
-    text-align: center; font-size: 28px; margin-bottom: 8px;
-    background: linear-gradient(90deg, #e94560, #f5a623);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  }
-  .subtitle { text-align: center; color: #888; font-size: 13px; margin-bottom: 28px; }
-  .card {
-    background: rgba(255,255,255,0.06); backdrop-filter: blur(12px);
-    border: 1px solid rgba(255,255,255,0.1); border-radius: 16px;
-    padding: 28px; margin-bottom: 20px;
-  }
-  label { display: block; font-size: 13px; color: #aaa; margin-bottom: 6px; font-weight: 500; }
-  input[type="text"], select, textarea {
-    width: 100%; padding: 10px 14px; background: rgba(0,0,0,0.3);
-    border: 1px solid rgba(255,255,255,0.12); border-radius: 8px;
-    color: #fff; font-size: 14px; outline: none; transition: border-color 0.2s;
-  }
-  input:focus, select:focus, textarea:focus { border-color: #e94560; }
-  textarea { resize: vertical; min-height: 80px; font-family: inherit; }
-  select option { background: #1a1a2e; color: #fff; }
-  .row { display: flex; gap: 14px; margin-bottom: 16px; }
-  .row > div { flex: 1; }
-  .field { margin-bottom: 16px; }
-  .btn {
-    width: 100%; padding: 14px; border: none; border-radius: 10px;
-    font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s;
-    background: linear-gradient(135deg, #e94560, #c23152); color: #fff; letter-spacing: 1px;
-  }
-  .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(233,69,96,0.35); }
-  .btn:active { transform: translateY(0); }
-  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);min-height:100vh;color:#e0e0e0;display:flex;justify-content:center;padding:30px 20px}
+  .container{width:100%;max-width:780px}
+  h1{text-align:center;font-size:28px;margin-bottom:8px;background:linear-gradient(90deg,#e94560,#f5a623);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .subtitle{text-align:center;color:#888;font-size:13px;margin-bottom:28px}
+  .card{background:rgba(255,255,255,.06);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:28px;margin-bottom:20px}
+  label{display:block;font-size:13px;color:#aaa;margin-bottom:6px;font-weight:500}
+  input[type="text"],select,textarea{width:100%;padding:10px 14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;font-size:14px;outline:none;transition:border-color .2s}
+  input:focus,select:focus,textarea:focus{border-color:#e94560}
+  textarea{resize:vertical;min-height:80px;font-family:inherit}
+  select option{background:#1a1a2e;color:#fff}
+  .row{display:flex;gap:14px;margin-bottom:16px}
+  .row>div{flex:1}
+  .field{margin-bottom:16px}
+  .btn{width:100%;padding:14px;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;transition:all .2s;background:linear-gradient(135deg,#e94560,#c23152);color:#fff;letter-spacing:1px}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(233,69,96,.35)}
+  .btn:active{transform:translateY(0)}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+  .btn-green{background:linear-gradient(135deg,#4ecdc4,#2ab7a9)}
+  .btn-green:hover{box-shadow:0 6px 20px rgba(78,205,196,.35)}
+  .btn-sm{width:auto;padding:8px 20px;font-size:13px;letter-spacing:0;border-radius:8px}
 
   /* Tabs */
-  .tabs { display: flex; gap: 0; margin-bottom: 20px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
-  .tab {
-    flex: 1; padding: 12px; text-align: center; cursor: pointer; font-size: 14px; font-weight: 500;
-    background: rgba(0,0,0,0.2); color: #888; transition: all 0.2s; border: none;
-  }
-  .tab.active { background: rgba(233,69,96,0.2); color: #e94560; }
-  .tab:hover:not(.active) { background: rgba(255,255,255,0.05); color: #ccc; }
-  .tab-panel { display: none; }
-  .tab-panel.active { display: block; }
+  .tabs{display:flex;gap:0;margin-bottom:20px;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,.1)}
+  .tab{flex:1;padding:12px;text-align:center;cursor:pointer;font-size:14px;font-weight:500;background:rgba(0,0,0,.2);color:#888;transition:all .2s;border:none}
+  .tab.active{background:rgba(233,69,96,.2);color:#e94560}
+  .tab:hover:not(.active){background:rgba(255,255,255,.05);color:#ccc}
+  .tab-panel{display:none}.tab-panel.active{display:block}
 
-  /* Ratio chips */
-  .ratio-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 6px; }
-  .ratio-chip {
-    display: flex; flex-direction: column; align-items: center; gap: 4px;
-    padding: 8px 4px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);
-    background: rgba(0,0,0,0.2); cursor: pointer; transition: all 0.2s;
-  }
-  .ratio-chip:hover { border-color: rgba(233,69,96,0.5); }
-  .ratio-chip.active { border-color: #e94560; background: rgba(233,69,96,0.12); }
-  .ratio-icon { border: 1.5px solid #888; border-radius: 3px; transition: all 0.2s; }
-  .ratio-chip.active .ratio-icon, .ratio-chip:hover .ratio-icon { border-color: #e94560; }
-  .ratio-chip .ratio-label { font-size: 11px; color: #aaa; }
-  .ratio-chip .ratio-val { font-size: 12px; color: #ccc; font-weight: 500; }
-  .ratio-chip.active .ratio-label, .ratio-chip.active .ratio-val { color: #e94560; }
-  .custom-size-input { display: none; margin-top: 10px; align-items: center; gap: 6px; }
-  .custom-size-input.show { display: flex; }
-  .custom-size-input input { width: 80px; text-align: center; padding: 8px 6px; }
-  .custom-size-input span { color: #888; font-size: 14px; flex-shrink: 0; }
+  /* Ratio */
+  .ratio-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:6px}
+  .ratio-chip{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.2);cursor:pointer;transition:all .2s}
+  .ratio-chip:hover{border-color:rgba(233,69,96,.5)}
+  .ratio-chip.active{border-color:#e94560;background:rgba(233,69,96,.12)}
+  .ratio-icon{border:1.5px solid #888;border-radius:3px;transition:all .2s}
+  .ratio-chip.active .ratio-icon,.ratio-chip:hover .ratio-icon{border-color:#e94560}
+  .ratio-chip .ratio-label{font-size:10px;color:#aaa}
+  .ratio-chip .ratio-val{font-size:11px;color:#ccc;font-weight:500}
+  .ratio-chip.active .ratio-label,.ratio-chip.active .ratio-val{color:#e94560}
+  .custom-size-input{display:none;margin-top:10px;align-items:center;gap:6px}
+  .custom-size-input.show{display:flex}
+  .custom-size-input input{width:80px;text-align:center;padding:8px 6px}
+  .custom-size-input span{color:#888;font-size:14px;flex-shrink:0}
 
-  /* Image upload */
-  .upload-area {
-    border: 2px dashed rgba(255,255,255,0.15); border-radius: 12px;
-    padding: 24px; text-align: center; cursor: pointer; transition: all 0.2s;
-    position: relative; overflow: hidden;
-  }
-  .upload-area:hover { border-color: rgba(233,69,96,0.5); background: rgba(233,69,96,0.03); }
-  .upload-area.has-image { padding: 8px; }
-  .upload-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-  .upload-icon { font-size: 36px; margin-bottom: 8px; }
-  .upload-text { font-size: 13px; color: #888; }
-  .preview-img { max-width: 100%; max-height: 300px; border-radius: 8px; display: none; }
-  .upload-area.has-image .upload-icon, .upload-area.has-image .upload-text { display: none; }
-  .upload-area.has-image .preview-img { display: block; margin: 0 auto; }
-  .remove-img {
-    display: none; position: absolute; top: 8px; right: 8px;
-    background: rgba(0,0,0,0.7); color: #e94560; border: none; border-radius: 50%;
-    width: 28px; height: 28px; cursor: pointer; font-size: 16px; line-height: 28px;
-  }
-  .upload-area.has-image .remove-img { display: block; }
+  /* Upload */
+  .upload-area{border:2px dashed rgba(255,255,255,.15);border-radius:12px;padding:24px;text-align:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+  .upload-area:hover{border-color:rgba(233,69,96,.5);background:rgba(233,69,96,.03)}
+  .upload-area.has-image{padding:8px}
+  .upload-area input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer}
+  .upload-icon{font-size:36px;margin-bottom:8px}
+  .upload-text{font-size:13px;color:#888}
+  .preview-img{max-width:100%;max-height:300px;border-radius:8px;display:none}
+  .upload-area.has-image .upload-icon,.upload-area.has-image .upload-text{display:none}
+  .upload-area.has-image .preview-img{display:block;margin:0 auto}
+  .remove-img{display:none;position:absolute;top:8px;right:8px;background:rgba(0,0,0,.7);color:#e94560;border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:16px;line-height:28px}
+  .upload-area.has-image .remove-img{display:block}
 
-  /* Preset groups */
-  .preset-section { margin-bottom: 14px; }
-  .preset-section-title {
-    font-size: 12px; color: #e94560; margin-bottom: 8px; font-weight: 600;
-    display: flex; align-items: center; gap: 6px;
-  }
-  .preset-section-title::after {
-    content: ""; flex: 1; height: 1px; background: rgba(233,69,96,0.2);
-  }
-  .preset-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .preset-chip {
-    padding: 5px 12px; border-radius: 6px; font-size: 12px;
-    border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2);
-    color: #aaa; cursor: pointer; transition: all 0.2s; user-select: none;
-  }
-  .preset-chip:hover { border-color: rgba(233,69,96,0.5); color: #ccc; }
-  .preset-chip.active { border-color: #e94560; background: rgba(233,69,96,0.15); color: #e94560; }
-  .preset-chip .star { color: #f5a623; margin-right: 2px; }
+  /* Presets */
+  .preset-section{margin-bottom:14px}
+  .preset-section-title{font-size:12px;color:#e94560;margin-bottom:8px;font-weight:600;display:flex;align-items:center;gap:6px}
+  .preset-section-title::after{content:"";flex:1;height:1px;background:rgba(233,69,96,.2)}
+  .preset-chips{display:flex;flex-wrap:wrap;gap:6px}
+  .preset-chip{padding:5px 12px;border-radius:6px;font-size:12px;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.2);color:#aaa;cursor:pointer;transition:all .2s;user-select:none}
+  .preset-chip:hover{border-color:rgba(233,69,96,.5);color:#ccc}
+  .preset-chip.active{border-color:#e94560;background:rgba(233,69,96,.15);color:#e94560}
+  .preset-chip .star{color:#f5a623;margin-right:2px}
+  .toggle-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+  .toggle-chip{padding:5px 12px;border-radius:6px;font-size:12px;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.2);color:#888;cursor:pointer;transition:all .2s;user-select:none}
+  .toggle-chip:hover{border-color:rgba(255,255,255,.3);color:#aaa}
+  .toggle-chip.active{border-color:#4ecdc4;background:rgba(78,205,196,.12);color:#4ecdc4}
+  .advanced-toggle{font-size:12px;color:#666;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;gap:4px}
+  .advanced-toggle:hover{color:#aaa}
+  .advanced-panel{display:none}.advanced-panel.show{display:block}
 
-  /* Preserve toggles */
-  .toggle-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
-  .toggle-chip {
-    padding: 5px 12px; border-radius: 6px; font-size: 12px;
-    border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2);
-    color: #888; cursor: pointer; transition: all 0.2s; user-select: none;
-  }
-  .toggle-chip:hover { border-color: rgba(255,255,255,0.3); color: #aaa; }
-  .toggle-chip.active { border-color: #4ecdc4; background: rgba(78,205,196,0.12); color: #4ecdc4; }
+  /* 4K badge */
+  .badge-4k{display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;background:linear-gradient(135deg,#f5a623,#e94560);color:#fff;margin-left:4px;vertical-align:middle}
 
-  /* Advanced panel */
-  .advanced-toggle {
-    font-size: 12px; color: #666; cursor: pointer; margin-bottom: 10px;
-    display: flex; align-items: center; gap: 4px;
-  }
-  .advanced-toggle:hover { color: #aaa; }
-  .advanced-panel { display: none; }
-  .advanced-panel.show { display: block; }
+  /* Loading */
+  .loading-wrap{text-align:center;width:100%;padding:20px 0}
+  .loading-anim{width:60px;height:60px;margin:0 auto 16px;position:relative}
+  .loading-anim .ring{width:100%;height:100%;border-radius:50%;border:3px solid rgba(255,255,255,.06);border-top-color:#e94560;border-right-color:#f5a623;animation:spin 1s linear infinite}
+  .loading-anim .icon{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:24px;animation:pulse 2s ease-in-out infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
+  .loading-title{font-size:15px;color:#e0e0e0;margin-bottom:6px}
+  .loading-timer{font-size:22px;font-weight:600;color:#e94560;margin-bottom:12px;font-variant-numeric:tabular-nums}
+  .loading-bar-bg{width:80%;max-width:300px;height:4px;margin:0 auto 12px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
+  .loading-bar{height:100%;border-radius:2px;background:linear-gradient(90deg,#e94560,#f5a623);width:0%;transition:width .5s ease}
+  .loading-tip{font-size:12px;color:#666;margin-bottom:16px;min-height:16px}
+  .cancel-btn{padding:6px 20px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#888;transition:all .2s}
+  .cancel-btn:hover{background:rgba(233,69,96,.15);border-color:#e94560;color:#e94560}
+
+  /* Batch progress */
+  .batch-progress{margin:16px 0}
+  .batch-info{display:flex;justify-content:space-between;font-size:12px;color:#aaa;margin-bottom:6px}
+  .batch-bar-bg{width:100%;height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden}
+  .batch-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,#4ecdc4,#44a08d);transition:width .3s ease}
+  .batch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:16px}
+  .batch-card{border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.2);position:relative}
+  .batch-card img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+  .batch-card .batch-label{padding:6px 8px;font-size:11px;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .batch-card .batch-status{position:absolute;top:6px;right:6px;font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(0,0,0,.6);color:#888}
+  .batch-card .batch-status.done{color:#4ecdc4}
+  .batch-card .batch-status.fail{color:#e94560}
 
   /* Result */
-  .result-area {
-    text-align: center; min-height: 200px;
-    display: flex; align-items: center; justify-content: center; flex-direction: column;
-  }
-  .result-area img { max-width: 100%; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
-  .placeholder { color: #555; font-size: 14px; }
-  /* Loading UI */
-  .loading-wrap { text-align: center; width: 100%; padding: 20px 0; }
-  .loading-anim {
-    width: 60px; height: 60px; margin: 0 auto 16px;
-    position: relative;
-  }
-  .loading-anim .ring {
-    width: 100%; height: 100%; border-radius: 50%;
-    border: 3px solid rgba(255,255,255,0.06);
-    border-top-color: #e94560; border-right-color: #f5a623;
-    animation: spin 1s linear infinite;
-  }
-  .loading-anim .icon {
-    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-    font-size: 24px; animation: pulse 2s ease-in-out infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  @keyframes pulse { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
-  .loading-title { font-size: 15px; color: #e0e0e0; margin-bottom: 6px; }
-  .loading-timer { font-size: 22px; font-weight: 600; color: #e94560; margin-bottom: 12px; font-variant-numeric: tabular-nums; }
-  .loading-bar-bg {
-    width: 80%; max-width: 300px; height: 4px; margin: 0 auto 12px;
-    background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden;
-  }
-  .loading-bar {
-    height: 100%; border-radius: 2px; background: linear-gradient(90deg, #e94560, #f5a623);
-    width: 0%; transition: width 0.5s ease;
-  }
-  .loading-tip { font-size: 12px; color: #666; margin-bottom: 16px; min-height: 16px; }
-  .cancel-btn {
-    padding: 6px 20px; border-radius: 6px; font-size: 12px; cursor: pointer;
-    border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05);
-    color: #888; transition: all 0.2s;
-  }
-  .cancel-btn:hover { background: rgba(233,69,96,0.15); border-color: #e94560; color: #e94560; }
-  .actions { display: flex; gap: 10px; margin-top: 16px; justify-content: center; flex-wrap: wrap; }
-  .actions button {
-    padding: 8px 20px; border-radius: 8px;
-    border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.08);
-    color: #ccc; font-size: 13px; cursor: pointer; transition: all 0.2s;
-  }
-  .actions button:hover { background: rgba(255,255,255,0.15); color: #fff; }
-  .error-msg { color: #e94560; font-size: 13px; margin-top: 10px; word-break: break-all; }
+  .result-area{text-align:center;min-height:200px;display:flex;align-items:center;justify-content:center;flex-direction:column}
+  .result-area img{max-width:100%;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+  .placeholder{color:#555;font-size:14px}
+  .actions{display:flex;gap:10px;margin-top:16px;justify-content:center;flex-wrap:wrap}
+  .actions button{padding:8px 20px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:#ccc;font-size:13px;cursor:pointer;transition:all .2s}
+  .actions button:hover{background:rgba(255,255,255,.15);color:#fff}
+  .error-msg{color:#e94560;font-size:13px;margin-top:10px;word-break:break-all}
+  .success-msg{color:#4ecdc4;font-size:13px;margin-top:10px}
 
   /* History */
-  .history-item {
-    display: inline-block; margin: 6px; cursor: pointer; border-radius: 8px;
-    overflow: hidden; border: 2px solid transparent; transition: border-color 0.2s;
-  }
-  .history-item:hover { border-color: #e94560; }
-  .history-item img { width: 100px; height: 100px; object-fit: cover; display: block; }
+  .history-item{display:inline-block;margin:6px;cursor:pointer;border-radius:8px;overflow:hidden;border:2px solid transparent;transition:border-color .2s}
+  .history-item:hover{border-color:#e94560}
+  .history-item img{width:100px;height:100px;object-fit:cover;display:block}
 </style>
 </head>
 <body>
 <div class="container">
   <h1>🎨 秋天画图工具</h1>
-  <p class="subtitle">支持 gpt-image-2 / gpt-image-2-vip / nano-banana 系列</p>
+  <p class="subtitle">支持 gpt-image-2 / gpt-image-2-vip / nano-banana 系列 · 4K 原图导出</p>
 
   <div class="card">
     <div class="field">
@@ -207,9 +142,10 @@
     <div class="tabs">
       <button class="tab active" onclick="switchTab('txt2img')">✏️ 文生图</button>
       <button class="tab" onclick="switchTab('img2img')">🖼️ 图生图</button>
+      <button class="tab" onclick="switchTab('novel')">📖 小说批量出图</button>
     </div>
 
-    <!-- 文生图 -->
+    <!-- ====== 文生图 ====== -->
     <div class="tab-panel active" id="panel-txt2img">
       <div class="field">
         <label>✏️ 提示词</label>
@@ -217,7 +153,7 @@
       </div>
     </div>
 
-    <!-- 图生图 -->
+    <!-- ====== 图生图 ====== -->
     <div class="tab-panel" id="panel-img2img">
       <div class="field">
         <label>📤 上传参考图</label>
@@ -225,17 +161,14 @@
           <div class="upload-icon">📁</div>
           <div class="upload-text">点击或拖拽图片到此处</div>
           <img class="preview-img" id="previewImg">
-          <button class="remove-img" id="removeImg" onclick="removeImage(event)">×</button>
+          <button class="remove-img" onclick="removeImage(event)">×</button>
           <input type="file" id="imageInput" accept="image/*" onchange="handleImageUpload(event)">
         </div>
       </div>
-
-      <!-- 人像修图预设 -->
       <div class="field">
-        <label>💄 快捷修图预设 <span style="color:#666;font-weight:400">（可多选，自动拼接到提示词）</span></label>
-
+        <label>💄 快捷修图预设 <span style="color:#666;font-weight:400">（可多选）</span></label>
         <div class="preset-section">
-          <div class="preset-section-title">👤 全部 · 头部面部</div>
+          <div class="preset-section-title">👤 头部面部</div>
           <div class="preset-chips">
             <span class="preset-chip" data-cmd="补妆，让妆容更精致自然" onclick="togglePreset(this)"><span class="star">☆</span>补妆</span>
             <span class="preset-chip" data-cmd="调整为成熟男性面部特征，轮廓更硬朗" onclick="togglePreset(this)"><span class="star">☆</span>成熟男性脸</span>
@@ -246,9 +179,8 @@
             <span class="preset-chip" data-cmd="精致眼妆，增强眼影、眼线、睫毛的精致度" onclick="togglePreset(this)"><span class="star">☆</span>精致眼妆</span>
           </div>
         </div>
-
         <div class="preset-section">
-          <div class="preset-section-title">✨ 皮肤 · 质感</div>
+          <div class="preset-section-title">✨ 皮肤质感</div>
           <div class="preset-chips">
             <span class="preset-chip" data-cmd="磨皮美白，让皮肤更光滑白皙，毛孔细腻" onclick="togglePreset(this)">磨皮美白</span>
             <span class="preset-chip" data-cmd="去除痘痘、痘印、斑点等皮肤瑕疵" onclick="togglePreset(this)">祛痘祛斑</span>
@@ -256,19 +188,17 @@
             <span class="preset-chip" data-cmd="添加高级质感滤镜，色调偏电影胶片风" onclick="togglePreset(this)">质感滤镜</span>
           </div>
         </div>
-
         <div class="preset-section">
-          <div class="preset-section-title">👃 五官 · 轮廓</div>
+          <div class="preset-section-title">👃 五官轮廓</div>
           <div class="preset-chips">
-            <span class="preset-chip" data-cmd="锁定鼻子形状大小不变，五官位置不偏移，高光沿鼻梁中线分布，从眉心山根到鼻尖" onclick="togglePreset(this)">锁定鼻子+鼻梁高光</span>
+            <span class="preset-chip" data-cmd="锁定鼻子形状大小不变，五官位置不偏移，高光沿鼻梁中线分布" onclick="togglePreset(this)">锁定鼻子+鼻梁高光</span>
             <span class="preset-chip" data-cmd="增强五官立体感，加深轮廓阴影，突出骨骼结构" onclick="togglePreset(this)">五官立体</span>
             <span class="preset-chip" data-cmd="瘦脸微调，让脸部轮廓更小巧精致" onclick="togglePreset(this)">瘦脸微调</span>
             <span class="preset-chip" data-cmd="放大眼睛，让眼睛更有神、更明亮" onclick="togglePreset(this)">大眼增亮</span>
           </div>
         </div>
-
         <div class="preset-section">
-          <div class="preset-section-title">🌅 背景 · 特效</div>
+          <div class="preset-section-title">🌅 背景特效</div>
           <div class="preset-chips">
             <span class="preset-chip" data-cmd="去掉背景的路人和杂物，保持环境干净" onclick="togglePreset(this)">去背景路人</span>
             <span class="preset-chip" data-cmd="把背景替换为日式神社外景，保持人物不变" onclick="togglePreset(this)">换背景-日式神社</span>
@@ -279,10 +209,8 @@
           </div>
         </div>
       </div>
-
-      <!-- 锁定选项 -->
       <div class="field">
-        <label>🔒 锁定选项 <span style="color:#666;font-weight:400">（保持原图特定特征不变）</span></label>
+        <label>🔒 锁定选项</label>
         <div class="toggle-row">
           <span class="toggle-chip active" data-key="preserve_face" onclick="toggleLock(this)">🔒 保持面部特征</span>
           <span class="toggle-chip active" data-key="preserve_expression" onclick="toggleLock(this)">😊 保持表情</span>
@@ -290,8 +218,6 @@
           <span class="toggle-chip" data-key="no_scale_rotate" onclick="toggleLock(this)">📌 禁止缩放旋转</span>
         </div>
       </div>
-
-      <!-- 高级检测 -->
       <div class="advanced-toggle" onclick="toggleAdvanced()">⚙️ 高级：AI 分析原图（点击展开）</div>
       <div class="advanced-panel" id="advancedPanel">
         <div class="preset-section">
@@ -303,22 +229,37 @@
           </div>
         </div>
       </div>
-
-      <!-- 自定义补充 -->
       <div class="field" style="margin-top:14px">
         <label>✏️ 自定义补充描述</label>
-        <textarea id="img2imgPrompt" placeholder="在预设基础上补充额外要求，例如：把口红换成正红色、背景加一些樱花飘落"></textarea>
+        <textarea id="img2imgPrompt" placeholder="在预设基础上补充额外要求"></textarea>
       </div>
-
-      <!-- 提示词预览 -->
       <div class="field">
-        <label>📋 最终提示词预览 <span style="color:#666;font-weight:400">（自动拼接，可手动微调）</span></label>
-        <textarea id="finalPrompt" rows="4" style="font-size:12px;color:#ccc;background:rgba(0,0,0,0.4)" placeholder="选择预设后自动生成，也可直接编辑"></textarea>
+        <label>📋 最终提示词预览 <span style="color:#666;font-weight:400">（可手动微调）</span></label>
+        <textarea id="finalPrompt" rows="4" style="font-size:12px;color:#ccc;background:rgba(0,0,0,.4)" placeholder="选择预设后自动生成"></textarea>
       </div>
     </div>
 
-    <!-- 公共选项 -->
-    <div class="row" style="margin-top: 16px;">
+    <!-- ====== 小说批量出图 ====== -->
+    <div class="tab-panel" id="panel-novel">
+      <div class="field">
+        <label>📖 小说描述 / 场景列表</label>
+        <textarea id="novelInput" rows="8" placeholder="粘贴小说段落或场景描述，AI 会自动拆分为多个画面分别生成。&#10;&#10;示例：&#10;1. 少女站在樱花树下，微风吹过，花瓣纷飞&#10;2. 她转过身来，露出温柔的笑容，阳光洒在脸上&#10;3. 远处是一座古老的石桥，桥下溪水潺潺&#10;4. 夜幕降临，少女提着灯笼走在小巷中"></textarea>
+      </div>
+      <div class="row">
+        <div>
+          <label>📝 每张附加风格前缀（可选）</label>
+          <input type="text" id="novelStyle" placeholder="例如：高质量插画风格，anime style">
+        </div>
+      </div>
+      <div class="field">
+        <button class="btn btn-green" id="novelStartBtn" onclick="startNovelBatch()">🚀 开始批量生成</button>
+      </div>
+      <div id="novelProgress"></div>
+      <div id="novelResults"></div>
+    </div>
+
+    <!-- ====== 公共选项 ====== -->
+    <div class="row" style="margin-top:16px">
       <div>
         <label>🤖 模型</label>
         <select id="model">
@@ -329,67 +270,33 @@
           <option value="nano-banana-pro">nano-banana-pro</option>
         </select>
       </div>
-    </div>
-
-    <div class="field">
-      <label>📐 画面比例</label>
-      <div class="ratio-grid" id="ratioGrid">
-        <div class="ratio-chip active" data-val="1024x1024" onclick="pickRatio(this)">
-          <div class="ratio-icon" style="width:28px;height:28px"></div>
-          <span class="ratio-label">方形</span><span class="ratio-val">1:1</span>
-        </div>
-        <div class="ratio-chip" data-val="1280x1024" onclick="pickRatio(this)">
-          <div class="ratio-icon" style="width:32px;height:26px"></div>
-          <span class="ratio-label">横屏</span><span class="ratio-val">5:4</span>
-        </div>
-        <div class="ratio-chip" data-val="576x1024" onclick="pickRatio(this)">
-          <div class="ratio-icon" style="width:20px;height:35px"></div>
-          <span class="ratio-label">故事</span><span class="ratio-val">9:16</span>
-        </div>
-        <div class="ratio-chip" data-val="1344x576" onclick="pickRatio(this)">
-          <div class="ratio-icon" style="width:36px;height:15px"></div>
-          <span class="ratio-label">超宽屏</span><span class="ratio-val">21:9</span>
-        </div>
-        <div class="ratio-chip" data-val="1344x768" onclick="pickRatio(this)">
-          <div class="ratio-icon" style="width:36px;height:20px"></div>
-          <span class="ratio-label">宽屏</span><span class="ratio-val">16:9</span>
-        </div>
-        <div class="ratio-chip" data-val="1024x768" onclick="pickRatio(this)">
-          <div class="ratio-icon" style="width:32px;height:24px"></div>
-          <span class="ratio-label">横屏</span><span class="ratio-val">4:3</span>
-        </div>
-        <div class="ratio-chip" data-val="1216x816" onclick="pickRatio(this)">
-          <div class="ratio-icon" style="width:34px;height:22px"></div>
-          <span class="ratio-label">宽幅</span><span class="ratio-val">3:2</span>
-        </div>
-        <div class="ratio-chip" data-val="1024x1280" onclick="pickRatio(this)">
-          <div class="ratio-icon" style="width:26px;height:32px"></div>
-          <span class="ratio-label">标准</span><span class="ratio-val">4:5</span>
-        </div>
-        <div class="ratio-chip" data-val="768x1024" onclick="pickRatio(this)">
-          <div class="ratio-icon" style="width:24px;height:32px"></div>
-          <span class="ratio-label">竖版</span><span class="ratio-val">3:4</span>
-        </div>
-        <div class="ratio-chip" data-val="682x1024" onclick="pickRatio(this)">
-          <div class="ratio-icon" style="width:22px;height:33px"></div>
-          <span class="ratio-label">竖版</span><span class="ratio-val">2:3</span>
-        </div>
-        <div class="ratio-chip" data-val="custom" onclick="pickRatio(this)">
-          <div class="ratio-icon" style="width:28px;height:28px;border-style:dashed"></div>
-          <span class="ratio-label">自定义</span><span class="ratio-val">W×H</span>
-        </div>
+      <div>
+        <label>📐 导出分辨率</label>
+        <select id="sizeSelect" onchange="onSizeSelectChange()">
+          <option value="1024x1024">1024×1024 方形</option>
+          <option value="1024x1536">1024×1536 竖版</option>
+          <option value="1536x1024">1536×1024 横版</option>
+          <option value="1280x1024">1280×1024 横屏 5:4</option>
+          <option value="1344x768">1344×768 宽屏 16:9</option>
+          <option value="768x1024">768×1024 竖版 3:4</option>
+          <option value="custom">✏️ 自定义尺寸</option>
+          <option value="4k-h">🖥️ 4K 横版 3840×2160</option>
+          <option value="4k-v">🖥️ 4K 竖版 2160×3840</option>
+          <option value="4k-square">🖥️ 4K 方形 2160×2160</option>
+        </select>
       </div>
-      <div class="custom-size-input" id="customSizeWrap">
-        <input type="text" id="customW" value="1024" placeholder="宽">
-        <span>×</span>
-        <input type="text" id="customH" value="1024" placeholder="高">
-      </div>
-      <input type="hidden" id="size" value="1024x1024">
     </div>
+    <div class="custom-size-input" id="customSizeWrap">
+      <input type="text" id="customW" value="1024" placeholder="宽">
+      <span>×</span>
+      <input type="text" id="customH" value="1024" placeholder="高">
+    </div>
+    <input type="hidden" id="size" value="1024x1024">
 
     <button class="btn" id="generateBtn" onclick="generate()">✨ 开始生成</button>
   </div>
 
+  <!-- 结果 -->
   <div class="card">
     <div class="result-area" id="result">
       <p class="placeholder">生成的图片将在这里显示</p>
@@ -412,6 +319,8 @@ let lockOptions = { preserve_face: true, preserve_expression: true, preserve_ski
 let currentAbort = null;
 let loadingTimer = null;
 let loadingSeconds = 0;
+let novelAbort = null;
+let batchResults = [];
 
 const loadingTips = [
   "AI 正在理解你的创意意图...",
@@ -427,275 +336,264 @@ const loadingTips = [
 ];
 
 // Load saved key
-(function() {
-  const saved = localStorage.getItem("rc_draw_key");
-  if (saved) document.getElementById("apiKey").value = saved;
-})();
+(function(){ const s=localStorage.getItem("rc_draw_key"); if(s) document.getElementById("apiKey").value=s; })();
 
-// Tab switch
+// Tab
 function switchTab(mode) {
   currentMode = mode;
-  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-  document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
-  if (mode === "txt2img") {
-    document.querySelectorAll(".tab")[0].classList.add("active");
-    document.getElementById("panel-txt2img").classList.add("active");
-  } else {
-    document.querySelectorAll(".tab")[1].classList.add("active");
-    document.getElementById("panel-img2img").classList.add("active");
-  }
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  document.querySelectorAll(".tab-panel").forEach(p=>p.classList.remove("active"));
+  const tabs = document.querySelectorAll(".tab");
+  if(mode==="txt2img"){tabs[0].classList.add("active");document.getElementById("panel-txt2img").classList.add("active");}
+  else if(mode==="img2img"){tabs[1].classList.add("active");document.getElementById("panel-img2img").classList.add("active");}
+  else{tabs[2].classList.add("active");document.getElementById("panel-novel").classList.add("active");}
 }
 
-// Preset toggle
-function togglePreset(el) {
-  const cmd = el.dataset.cmd;
-  if (selectedPresets.has(cmd)) {
-    selectedPresets.delete(cmd);
-    el.classList.remove("active");
-  } else {
-    selectedPresets.add(cmd);
-    el.classList.add("active");
-  }
-  buildFinalPrompt();
-}
-
-// Lock toggle
-function toggleLock(el) {
-  const key = el.dataset.key;
-  if (key === "no_scale_rotate") {
-    el.classList.toggle("active");
-  } else {
-    if (lockOptions[key]) {
-      delete lockOptions[key];
-      el.classList.remove("active");
-    } else {
-      lockOptions[key] = true;
-      el.classList.add("active");
-    }
-  }
-  buildFinalPrompt();
-}
-
-// Advanced panel
-function toggleAdvanced() {
-  document.getElementById("advancedPanel").classList.toggle("show");
-}
-
-// Build final prompt
-function buildFinalPrompt() {
-  const parts = [];
-
-  // Preset commands
-  if (selectedPresets.size > 0) {
-    parts.push(...selectedPresets);
-  }
-
-  // Lock instructions
-  const locks = [];
-  if (lockOptions.preserve_face) locks.push("严格保持原始面部特征不变");
-  if (lockOptions.preserve_expression) locks.push("preserve_expression=true，保持原始表情");
-  if (lockOptions.preserve_skin_color) locks.push("preserve_skin_color=true，保持原始肤色");
-  if (document.querySelector('.toggle-chip[data-key="no_scale_rotate"]').classList.contains("active")) {
-    locks.push("no_scale_rotate_translate=true，禁止缩放旋转位移");
-  }
-  if (locks.length) parts.push(locks.join("，"));
-
-  // Custom text
-  const custom = document.getElementById("img2imgPrompt").value.trim();
-  if (custom) parts.push(custom);
-
-  document.getElementById("finalPrompt").value = parts.join("。\n");
-}
-
-// Watch custom prompt changes
-document.getElementById("img2imgPrompt").addEventListener("input", buildFinalPrompt);
-
-// Ratio picker
-function pickRatio(el) {
-  document.querySelectorAll(".ratio-chip").forEach(c => c.classList.remove("active"));
-  el.classList.add("active");
+// Size select
+function onSizeSelectChange() {
+  const v = document.getElementById("sizeSelect").value;
   const wrap = document.getElementById("customSizeWrap");
-  if (el.dataset.val === "custom") {
-    wrap.classList.add("show");
-    updateCustomSize();
-  } else {
-    wrap.classList.remove("show");
-    document.getElementById("size").value = el.dataset.val;
-  }
+  if(v==="custom"){wrap.classList.add("show");updateCustomSize();}
+  else{wrap.classList.remove("show");document.getElementById("size").value=v;}
 }
-function updateCustomSize() {
-  const w = document.getElementById("customW").value.trim() || "1024";
-  const h = document.getElementById("customH").value.trim() || "1024";
-  document.getElementById("size").value = w + "x" + h;
+function updateCustomSize(){
+  const w=document.getElementById("customW").value.trim()||"1024";
+  const h=document.getElementById("customH").value.trim()||"1024";
+  document.getElementById("size").value=w+"x"+h;
 }
-document.getElementById("customW").addEventListener("input", updateCustomSize);
-document.getElementById("customH").addEventListener("input", updateCustomSize);
+document.getElementById("customW").addEventListener("input",updateCustomSize);
+document.getElementById("customH").addEventListener("input",updateCustomSize);
 
-// Image upload
-function handleImageUpload(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(ev) {
-    refImageBase64 = ev.target.result;
-    document.getElementById("previewImg").src = refImageBase64;
-    document.getElementById("uploadArea").classList.add("has-image");
-  };
+// Presets
+function togglePreset(el){
+  const cmd=el.dataset.cmd;
+  if(selectedPresets.has(cmd)){selectedPresets.delete(cmd);el.classList.remove("active");}
+  else{selectedPresets.add(cmd);el.classList.add("active");}
+  buildFinalPrompt();
+}
+function toggleLock(el){
+  const key=el.dataset.key;
+  if(key==="no_scale_rotate"){el.classList.toggle("active");}
+  else{if(lockOptions[key]){delete lockOptions[key];el.classList.remove("active");}else{lockOptions[key]=true;el.classList.add("active");}}
+  buildFinalPrompt();
+}
+function toggleAdvanced(){document.getElementById("advancedPanel").classList.toggle("show");}
+function buildFinalPrompt(){
+  const parts=[];
+  if(selectedPresets.size>0) parts.push(...selectedPresets);
+  const locks=[];
+  if(lockOptions.preserve_face) locks.push("严格保持原始面部特征不变");
+  if(lockOptions.preserve_expression) locks.push("preserve_expression=true，保持原始表情");
+  if(lockOptions.preserve_skin_color) locks.push("preserve_skin_color=true，保持原始肤色");
+  if(document.querySelector('.toggle-chip[data-key="no_scale_rotate"]').classList.contains("active")) locks.push("no_scale_rotate_translate=true，禁止缩放旋转位移");
+  if(locks.length) parts.push(locks.join("，"));
+  const custom=document.getElementById("img2imgPrompt").value.trim();
+  if(custom) parts.push(custom);
+  document.getElementById("finalPrompt").value=parts.join("。\n");
+}
+document.getElementById("img2imgPrompt").addEventListener("input",buildFinalPrompt);
+
+// Upload
+function handleImageUpload(e){
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=function(ev){refImageBase64=ev.target.result;document.getElementById("previewImg").src=refImageBase64;document.getElementById("uploadArea").classList.add("has-image");};
   reader.readAsDataURL(file);
 }
-function removeImage(e) {
-  e.stopPropagation(); e.preventDefault();
-  refImageBase64 = null;
-  document.getElementById("previewImg").src = "";
-  document.getElementById("uploadArea").classList.remove("has-image");
-  document.getElementById("imageInput").value = "";
-}
-
-// Drag & drop
-const uploadArea = document.getElementById("uploadArea");
-uploadArea.addEventListener("dragover", e => { e.preventDefault(); uploadArea.style.borderColor = "#e94560"; });
-uploadArea.addEventListener("dragleave", () => { uploadArea.style.borderColor = ""; });
-uploadArea.addEventListener("drop", e => {
-  e.preventDefault(); uploadArea.style.borderColor = "";
-  const file = e.dataTransfer.files[0];
-  if (file && file.type.startsWith("image/")) {
-    document.getElementById("imageInput").files = e.dataTransfer.files;
-    handleImageUpload({ target: { files: [file] } });
-  }
-});
+function removeImage(e){e.stopPropagation();e.preventDefault();refImageBase64=null;document.getElementById("previewImg").src="";document.getElementById("uploadArea").classList.remove("has-image");document.getElementById("imageInput").value="";}
+const uploadArea=document.getElementById("uploadArea");
+uploadArea.addEventListener("dragover",e=>{e.preventDefault();uploadArea.style.borderColor="#e94560";});
+uploadArea.addEventListener("dragleave",()=>{uploadArea.style.borderColor="";});
+uploadArea.addEventListener("drop",e=>{e.preventDefault();uploadArea.style.borderColor="";const file=e.dataTransfer.files[0];if(file&&file.type.startsWith("image/")){document.getElementById("imageInput").files=e.dataTransfer.files;handleImageUpload({target:{files:[file]}});}});
 
 // Loading UI
-function showLoading() {
-  const result = document.getElementById("result");
-  loadingSeconds = 0;
-  const tipIdx = Math.floor(Math.random() * loadingTips.length);
-  result.innerHTML = `
-    <div class="loading-wrap">
-      <div class="loading-anim"><div class="ring"></div><div class="icon">🎨</div></div>
-      <div class="loading-title">正在生成图片...</div>
-      <div class="loading-timer" id="loadingTimer">0s</div>
-      <div class="loading-bar-bg"><div class="loading-bar" id="loadingBar"></div></div>
-      <div class="loading-tip" id="loadingTip">${loadingTips[tipIdx]}</div>
-      <button class="cancel-btn" onclick="cancelGenerate()">✕ 取消生成</button>
-    </div>
-  `;
-  loadingTimer = setInterval(() => {
+function showLoading(){
+  const result=document.getElementById("result");
+  loadingSeconds=0;
+  const tipIdx=Math.floor(Math.random()*loadingTips.length);
+  result.innerHTML='<div class="loading-wrap"><div class="loading-anim"><div class="ring"></div><div class="icon">🎨</div></div><div class="loading-title">正在生成图片...</div><div class="loading-timer" id="loadingTimer">0s</div><div class="loading-bar-bg"><div class="loading-bar" id="loadingBar"></div></div><div class="loading-tip" id="loadingTip">'+loadingTips[tipIdx]+'</div><button class="cancel-btn" onclick="cancelGenerate()">✕ 取消生成</button></div>';
+  loadingTimer=setInterval(()=>{
     loadingSeconds++;
-    const el = document.getElementById("loadingTimer");
-    const bar = document.getElementById("loadingBar");
-    const tip = document.getElementById("loadingTip");
-    if (el) el.textContent = loadingSeconds + "s";
-    // Progress: fast at start, slow near end (fake progress up to 90%)
-    if (bar) {
-      const pct = Math.min(90, (1 - Math.exp(-loadingSeconds / 20)) * 100);
-      bar.style.width = pct + "%";
-    }
-    // Rotate tips every 8 seconds
-    if (tip && loadingSeconds % 8 === 0) {
-      tip.style.opacity = 0;
-      setTimeout(() => {
-        if (tip) {
-          tip.textContent = loadingTips[Math.floor(Math.random() * loadingTips.length)];
-          tip.style.opacity = 1;
-        }
-      }, 300);
-    }
-  }, 1000);
+    const el=document.getElementById("loadingTimer");
+    const bar=document.getElementById("loadingBar");
+    const tip=document.getElementById("loadingTip");
+    if(el) el.textContent=loadingSeconds+"s";
+    if(bar){const pct=Math.min(90,(1-Math.exp(-loadingSeconds/20))*100);bar.style.width=pct+"%";}
+    if(tip&&loadingSeconds%8===0){tip.style.opacity=0;setTimeout(()=>{if(tip){tip.textContent=loadingTips[Math.floor(Math.random()*loadingTips.length)];tip.style.opacity=1;}},300);}
+  },1000);
 }
+function hideLoading(){if(loadingTimer){clearInterval(loadingTimer);loadingTimer=null;}}
+function cancelGenerate(){if(currentAbort)currentAbort.abort();}
 
-function hideLoading() {
-  if (loadingTimer) { clearInterval(loadingTimer); loadingTimer = null; }
-}
+// Single generate
+async function generate(){
+  const apiKey=document.getElementById("apiKey").value.trim();
+  const size=document.getElementById("size").value;
+  const model=document.getElementById("model").value;
+  const btn=document.getElementById("generateBtn");
+  if(!apiKey) return showError("请输入 API Key");
+  localStorage.setItem("rc_draw_key",apiKey);
 
-function cancelGenerate() {
-  if (currentAbort) currentAbort.abort();
-}
-
-// Generate
-async function generate() {
-  const apiKey = document.getElementById("apiKey").value.trim();
-  const size = document.getElementById("size").value;
-  const model = document.getElementById("model").value;
-  const btn = document.getElementById("generateBtn");
-  const result = document.getElementById("result");
-
-  if (!apiKey) return showError("请输入 API Key");
-  localStorage.setItem("rc_draw_key", apiKey);
-
-  let prompt, body;
-  if (currentMode === "txt2img") {
-    prompt = document.getElementById("prompt").value.trim();
-    if (!prompt) return showError("请输入提示词");
-    body = { model, prompt, size, response_format: "url" };
+  let prompt,body;
+  if(currentMode==="txt2img"){
+    prompt=document.getElementById("prompt").value.trim();
+    if(!prompt) return showError("请输入提示词");
+    body={model,prompt,size,response_format:"url"};
   } else {
-    prompt = document.getElementById("finalPrompt").value.trim();
-    if (!refImageBase64) return showError("请先上传参考图");
-    if (!prompt) return showError("请选择修图预设或输入自定义描述");
-    body = { model, prompt, size, response_format: "url", image: [refImageBase64] };
+    prompt=document.getElementById("finalPrompt").value.trim();
+    if(!refImageBase64) return showError("请先上传参考图");
+    if(!prompt) return showError("请选择修图预设或输入描述");
+    body={model,prompt,size,response_format:"url",image:[refImageBase64]};
   }
 
-  btn.disabled = true;
-  btn.textContent = "⏳ 生成中...";
-  currentAbort = new AbortController();
+  btn.disabled=true;btn.textContent="⏳ 生成中...";
+  currentAbort=new AbortController();
   showLoading();
 
-  try {
-    const resp = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Authorization": "Bearer " + apiKey, "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      signal: currentAbort.signal
-    });
-    const data = await resp.json();
-    if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
-
+  try{
+    const resp=await fetch(API_URL,{method:"POST",headers:{"Authorization":"Bearer "+apiKey,"Content-Type":"application/json"},body:JSON.stringify(body),signal:currentAbort.signal});
+    const data=await resp.json();
+    if(data.error) throw new Error(data.error.message||JSON.stringify(data.error));
     hideLoading();
-    // Fill progress to 100%
-    const bar = document.getElementById("loadingBar");
-    if (bar) bar.style.width = "100%";
-
-    const url = data.data[0].url;
-    const tokens = data.usage ? data.usage.total_tokens : "N/A";
-
-    result.innerHTML = `
-      <img src="${url}" onclick="window.open('${url}','_blank')" style="cursor:pointer" title="点击在新窗口打开">
-      <div class="actions">
-        <button onclick="window.open('${url}','_blank')">🔍 新窗口查看</button>
-        <button onclick="downloadImg('${url}')">💾 下载图片</button>
-        <button onclick="copyUrl('${url}')">📋 复制链接</button>
-      </div>
-      <p style="color:#666;font-size:12px;margin-top:10px">模型: ${model} · 耗时: ${loadingSeconds}s · tokens: ${tokens}</p>
-    `;
-    historyList.unshift({ url, prompt, model });
+    const url=data.data[0].url;
+    const tokens=data.usage?data.usage.total_tokens:"N/A";
+    document.getElementById("result").innerHTML=
+      '<img src="'+url+'" onclick="window.open(\''+url+'\',\'_blank\')" style="cursor:pointer" title="点击查看原图">'+
+      '<div class="actions">'+
+        '<button onclick="window.open(\''+url+'\',\'_blank\')">🔍 4K 原图查看</button>'+
+        '<button onclick="downloadImg(\''+url+'\')">💾 下载原图</button>'+
+        '<button onclick="copyUrl(\''+url+'\')">📋 复制链接</button>'+
+      '</div>'+
+      '<p style="color:#666;font-size:12px;margin-top:10px">模型: '+model+' · 耗时: '+loadingSeconds+'s · tokens: '+tokens+'</p>';
+    historyList.unshift({url,prompt,model});
     renderHistory();
-  } catch (err) {
+  }catch(err){
     hideLoading();
-    if (err.name === "AbortError") {
-      result.innerHTML = '<p style="color:#888;font-size:13px">⏹ 已取消生成</p>';
-    } else {
-      result.innerHTML = '<p class="error-msg">❌ ' + err.message + '</p>';
+    if(err.name==="AbortError") document.getElementById("result").innerHTML='<p style="color:#888">⏹ 已取消</p>';
+    else document.getElementById("result").innerHTML='<p class="error-msg">❌ '+err.message+'</p>';
+  }finally{btn.disabled=false;btn.textContent="✨ 开始生成";currentAbort=null;}
+}
+
+// Novel batch
+async function startNovelBatch(){
+  const apiKey=document.getElementById("apiKey").value.trim();
+  const model=document.getElementById("model").value;
+  const size=document.getElementById("size").value;
+  const raw=document.getElementById("novelInput").value.trim();
+  const style=document.getElementById("novelStyle").value.trim();
+  const btn=document.getElementById("novelStartBtn");
+
+  if(!apiKey) return alert("请输入 API Key");
+  localStorage.setItem("rc_draw_key",apiKey);
+  if(!raw) return alert("请输入小说描述");
+
+  // Parse scenes: split by numbered lines or newlines
+  let scenes=raw.split(/\n/).map(s=>s.replace(/^\d+[\.\、\)\s]+/,"").trim()).filter(s=>s.length>0);
+  if(!scenes.length) return alert("未识别到场景描述");
+
+  btn.disabled=true;btn.textContent="⏳ 批量生成中...";
+  batchResults=[];
+  novelAbort=new AbortController();
+
+  const progressEl=document.getElementById("novelProgress");
+  const resultsEl=document.getElementById("novelResults");
+  resultsEl.innerHTML="";
+
+  // Build cards
+  let cardsHtml='<div class="batch-grid">';
+  scenes.forEach((s,i)=>{cardsHtml+='<div class="batch-card" id="batchCard'+i+'"><div style="aspect-ratio:1;background:rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#555;font-size:12px;padding:8px;text-align:center">'+escHtml(s.substring(0,50))+'</div><div class="batch-label">#'+(i+1)+' '+escHtml(s.substring(0,30))+'</div><span class="batch-status" id="batchStatus'+i+'">等待中</span></div>';});
+  cardsHtml+='</div>';
+  resultsEl.innerHTML=cardsHtml;
+
+  for(let i=0;i<scenes.length;i++){
+    if(novelAbort.signal.aborted) break;
+    const scene=scenes[i];
+    const prompt=style?(style+"，"+scene):scene;
+
+    progressEl.innerHTML='<div class="batch-progress"><div class="batch-info"><span>正在生成第 '+(i+1)+'/'+scenes.length+' 张</span><span id="batchTimer">0s</span></div><div class="batch-bar-bg"><div class="batch-bar" id="batchBar" style="width:0%"></div></div></div><button class="cancel-btn" onclick="cancelNovel()" style="margin-top:8px">✕ 取消批量生成</button>';
+
+    const statusEl=document.getElementById("batchStatus"+i);
+    if(statusEl){statusEl.textContent="生成中...";statusEl.style.color="#f5a623";}
+
+    // Timer for this image
+    let sec=0;
+    const t=setInterval(()=>{
+      sec++;
+      const te=document.getElementById("batchTimer");
+      const be=document.getElementById("batchBar");
+      if(te) te.textContent=sec+"s";
+      if(be) be.style.width=Math.min(90,(1-Math.exp(-sec/15))*100)+"%";
+    },1000);
+
+    try{
+      const body={model,prompt,size,response_format:"url"};
+      const resp=await fetch(API_URL,{method:"POST",headers:{"Authorization":"Bearer "+apiKey,"Content-Type":"application/json"},body:JSON.stringify(body),signal:novelAbort.signal});
+      const data=await resp.json();
+      clearInterval(t);
+      if(data.error) throw new Error(data.error.message||JSON.stringify(data.error));
+
+      const url=data.data[0].url;
+      batchResults.push({url,scene,index:i});
+
+      // Update card
+      const card=document.getElementById("batchCard"+i);
+      if(card){card.querySelector("div").innerHTML='<img src="'+url+'" style="width:100%;aspect-ratio:1;object-fit:cover;cursor:pointer" onclick="window.open(\''+url+'\',\'_blank\')">';}
+      if(statusEl){statusEl.textContent="✓ 完成";statusEl.classList.add("done");statusEl.style.color="";}
+    }catch(err){
+      clearInterval(t);
+      if(err.name==="AbortError"){
+        if(statusEl){statusEl.textContent="已取消";statusEl.style.color="#888";}
+        break;
+      }
+      if(statusEl){statusEl.textContent="✗ 失败";statusEl.classList.add("fail");statusEl.style.color="";}
     }
-  } finally {
-    btn.disabled = false;
-    btn.textContent = "✨ 开始生成";
-    currentAbort = null;
+
+    // Update global progress
+    const bar=document.getElementById("batchBar");
+    if(bar) bar.style.width=((i+1)/scenes.length*100)+"%";
   }
+
+  progressEl.innerHTML='<p class="success-msg">✅ 批量生成完成！共 '+batchResults.length+'/'+scenes.length+' 张成功</p>'+
+    (batchResults.length>0?'<button class="btn btn-green btn-sm" onclick="downloadAllBatch()" style="margin-top:10px">📦 一键打包下载全部图片</button>':'');
+  btn.disabled=false;btn.textContent="🚀 开始批量生成";novelAbort=null;
 }
 
-function showError(msg) { document.getElementById("result").innerHTML = '<p class="error-msg">⚠️ ' + msg + '</p>'; }
-function downloadImg(url) { const a = document.createElement("a"); a.href = url; a.download = "draw_" + Date.now() + ".png"; a.click(); }
-function copyUrl(url) { navigator.clipboard.writeText(url).then(() => alert("链接已复制！")).catch(() => prompt("请手动复制：", url)); }
-function renderHistory() {
-  const card = document.getElementById("historyCard");
-  const container = document.getElementById("history");
-  if (!historyList.length) { card.style.display = "none"; return; }
-  card.style.display = "block";
-  container.innerHTML = historyList.map(item =>
-    '<span class="history-item" title="' + item.model + ': ' + item.prompt + '" onclick="window.open(\'' + item.url + '\',\'_blank\')"><img src="' + item.url + '"></span>'
-  ).join("");
+function cancelNovel(){if(novelAbort)novelAbort.abort();}
+
+async function downloadAllBatch(){
+  if(!batchResults.length) return alert("没有可下载的图片");
+  const btn=event.target;btn.disabled=true;btn.textContent="⏳ 打包中...";
+  try{
+    const zip=new JSZip();
+    const folder=zip.folder("秋天画图工具_小说出图");
+    for(let i=0;i<batchResults.length;i++){
+      const r=batchResults[i];
+      try{
+        const resp=await fetch(r.url);
+        const blob=await resp.blob();
+        const ext=r.url.split(".").pop().split("?")[0]||"png";
+        folder.file("scene_"+(r.index+1)+"."+ext,blob);
+      }catch(e){console.warn("下载失败:",r.url);}
+    }
+    const content=await zip.generateAsync({type:"blob"});
+    saveAs(content,"秋天画图工具_小说出图.zip");
+  }catch(e){alert("打包失败: "+e.message);}
+  btn.disabled=false;btn.textContent="📦 一键打包下载全部图片";
 }
 
-document.addEventListener("keydown", e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) generate(); });
+// Helpers
+function escHtml(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function showError(msg){document.getElementById("result").innerHTML='<p class="error-msg">⚠️ '+msg+'</p>';}
+function downloadImg(url){const a=document.createElement("a");a.href=url;a.download="draw_"+Date.now()+".png";a.click();}
+function copyUrl(url){navigator.clipboard.writeText(url).then(()=>alert("链接已复制！")).catch(()=>prompt("请手动复制：",url));}
+function renderHistory(){
+  const card=document.getElementById("historyCard");
+  const container=document.getElementById("history");
+  if(!historyList.length){card.style.display="none";return;}
+  card.style.display="block";
+  container.innerHTML=historyList.map(item=>'<span class="history-item" title="'+item.model+': '+item.prompt+'" onclick="window.open(\''+item.url+'\',\'_blank\')"><img src="'+item.url+'"></span>').join("");
+}
+document.addEventListener("keydown",e=>{if(e.key==="Enter"&&(e.ctrlKey||e.metaKey))generate();});
 </script>
 </body>
 </html>
