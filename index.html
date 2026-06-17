@@ -251,7 +251,11 @@ select option{background:#1a1a2e;color:#fff}
   <div class="tab-panel" id="panel-novel">
     <div class="field">
       <label>📖 小说描述 / 场景列表 <span style="color:#666;font-weight:400">（每行一个场景）</span></label>
-      <textarea id="novelInput" rows="8" placeholder="1. 少女站在樱花树下，微风吹过花瓣纷飞&#10;2. 她转身露出温柔笑容&#10;3. 远处古老石桥，桥下溪水潺潺"></textarea>
+      <textarea id="novelInput" rows="8" placeholder="粘贴小说段落，AI 自动拆分为多个画面场景...&#10;&#10;支持格式：&#10;1. 少女站在樱花树下&#10;2. 她转身露出笑容&#10;&#10;或者直接粘贴一整段小说文本，点击「AI 拆分场景」自动生成"></textarea>
+    </div>
+    <div class="btn-row" style="margin-top:-8px;margin-bottom:14px">
+      <button class="btn btn-sm btn-purple" id="splitBtn" onclick="splitScenes()">🤖 AI 自动拆分场景</button>
+      <button class="btn btn-sm btn-orange" onclick="addScene()">➕ 手动添加场景</button>
     </div>
     <div class="row">
       <div>
@@ -547,6 +551,32 @@ async function startNovelBatch(){
   btn.disabled=false;btn.textContent="🚀 开始批量生成";novelAbort=null;
 }
 function cancelNovel(){if(novelAbort)novelAbort.abort();}
+
+async function splitScenes(){
+  const apiKey=document.getElementById("apiKey").value.trim();
+  const raw=document.getElementById("novelInput").value.trim();
+  const btn=document.getElementById("splitBtn");
+  if(!apiKey)return alert("请先输入 API Key");
+  if(!raw)return alert("请先粘贴小说文本");
+  btn.disabled=true;btn.textContent="⏳ AI 拆分中...";
+  try{
+    const resp=await fetch(CHAT_URL,{method:"POST",headers:{"Authorization":"Bearer "+apiKey,"Content-Type":"application/json"},body:JSON.stringify({model:"gpt-image-2",messages:[{role:"system",content:"你是AI绘画场景拆分专家。用户会给你一段小说/故事文本，请将其拆分为多个独立的视觉画面场景。要求：1.每个场景是一个可直接用于AI绘画的详细画面描述 2.保留原文关键视觉元素 3.每个场景控制在30-80字 4.按故事顺序排列 5.只输出场景列表，每行一个，用数字编号，不要其他解释 6.拆分为5-15个场景"},{role:"user",content:raw}],max_tokens:1000})});
+    const data=await resp.json();
+    if(data.choices&&data.choices[0]){
+      const result=data.choices[0].message.content.trim();
+      document.getElementById("novelInput").value=result;
+    }else alert("拆分失败: "+JSON.stringify(data));
+  }catch(e){alert("拆分失败: "+e.message);}
+  btn.disabled=false;btn.textContent="🤖 AI 自动拆分场景";
+}
+
+function addScene(){
+  const ta=document.getElementById("novelInput");
+  const lines=ta.value.trim().split(/\n/).filter(s=>s.trim());
+  const next=lines.length+1;
+  ta.value+=(ta.value.trim()?"\n":"")+next+". ";
+  ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);
+}
 
 // Drag & drop for batch
 let dragIdx=null;
