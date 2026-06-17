@@ -68,6 +68,21 @@ select option{background:#1a1a2e;color:#fff}
 .advanced-toggle:hover{color:#aaa}
 .advanced-panel{display:none}.advanced-panel.show{display:block}
 
+/* Ratio chips */
+.ratio-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:6px}
+.ratio-chip{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.2);cursor:pointer;transition:all .2s}
+.ratio-chip:hover{border-color:rgba(233,69,96,.5)}
+.ratio-chip.active{border-color:#e94560;background:rgba(233,69,96,.12)}
+.ratio-icon{border:1.5px solid #888;border-radius:3px;transition:all .2s}
+.ratio-chip.active .ratio-icon,.ratio-chip:hover .ratio-icon{border-color:#e94560}
+.ratio-chip .ratio-label{font-size:10px;color:#aaa}
+.ratio-chip .ratio-val{font-size:11px;color:#ccc;font-weight:500}
+.ratio-chip.active .ratio-label,.ratio-chip.active .ratio-val{color:#e94560}
+.custom-size-input{display:none;margin-top:10px;align-items:center;gap:6px}
+.custom-size-input.show{display:flex}
+.custom-size-input input{width:80px;text-align:center;padding:8px 6px}
+.custom-size-input span{color:#888;font-size:14px;flex-shrink:0}
+
 /* Loading */
 .loading-wrap{text-align:center;width:100%;padding:20px 0}
 .loading-anim{width:60px;height:60px;margin:0 auto 16px;position:relative}
@@ -330,25 +345,62 @@ select option{background:#1a1a2e;color:#fff}
         <option value="nano-banana-pro">nano-banana-pro</option>
       </select>
     </div>
-    <div>
-      <label>📐 尺寸</label>
-      <select id="sizeSelect" onchange="onSizeSelectChange()">
-        <option value="1024x1024">1024×1024 方形</option>
-        <option value="1024x1536">1024×1536 竖版</option>
-        <option value="1536x1024">1536×1024 横版</option>
-        <option value="1280x1024">1280×1024 5:4</option>
-        <option value="1344x768">1344×768 16:9</option>
-        <option value="768x1024">768×1024 3:4</option>
-        <option value="custom">✏️ 自定义</option>
-      </select>
+  </div>
+  <div class="field">
+    <label>📐 画面比例</label>
+    <div class="ratio-grid">
+      <div class="ratio-chip active" data-val="1024x1024" onclick="pickRatio(this)">
+        <div class="ratio-icon" style="width:28px;height:28px"></div>
+        <span class="ratio-label">方形</span><span class="ratio-val">1:1</span>
+      </div>
+      <div class="ratio-chip" data-val="1280x1024" onclick="pickRatio(this)">
+        <div class="ratio-icon" style="width:32px;height:26px"></div>
+        <span class="ratio-label">横屏</span><span class="ratio-val">5:4</span>
+      </div>
+      <div class="ratio-chip" data-val="576x1024" onclick="pickRatio(this)">
+        <div class="ratio-icon" style="width:20px;height:35px"></div>
+        <span class="ratio-label">故事</span><span class="ratio-val">9:16</span>
+      </div>
+      <div class="ratio-chip" data-val="1344x576" onclick="pickRatio(this)">
+        <div class="ratio-icon" style="width:36px;height:15px"></div>
+        <span class="ratio-label">超宽屏</span><span class="ratio-val">21:9</span>
+      </div>
+      <div class="ratio-chip" data-val="1344x768" onclick="pickRatio(this)">
+        <div class="ratio-icon" style="width:36px;height:20px"></div>
+        <span class="ratio-label">宽屏</span><span class="ratio-val">16:9</span>
+      </div>
+      <div class="ratio-chip" data-val="1024x768" onclick="pickRatio(this)">
+        <div class="ratio-icon" style="width:32px;height:24px"></div>
+        <span class="ratio-label">横屏</span><span class="ratio-val">4:3</span>
+      </div>
+      <div class="ratio-chip" data-val="1216x816" onclick="pickRatio(this)">
+        <div class="ratio-icon" style="width:34px;height:22px"></div>
+        <span class="ratio-label">宽幅</span><span class="ratio-val">3:2</span>
+      </div>
+      <div class="ratio-chip" data-val="1024x1280" onclick="pickRatio(this)">
+        <div class="ratio-icon" style="width:26px;height:32px"></div>
+        <span class="ratio-label">标准</span><span class="ratio-val">4:5</span>
+      </div>
+      <div class="ratio-chip" data-val="768x1024" onclick="pickRatio(this)">
+        <div class="ratio-icon" style="width:24px;height:32px"></div>
+        <span class="ratio-label">竖版</span><span class="ratio-val">3:4</span>
+      </div>
+      <div class="ratio-chip" data-val="682x1024" onclick="pickRatio(this)">
+        <div class="ratio-icon" style="width:22px;height:33px"></div>
+        <span class="ratio-label">竖版</span><span class="ratio-val">2:3</span>
+      </div>
+      <div class="ratio-chip" data-val="custom" onclick="pickRatio(this)">
+        <div class="ratio-icon" style="width:28px;height:28px;border-style:dashed"></div>
+        <span class="ratio-label">自定义</span><span class="ratio-val">W×H</span>
+      </div>
     </div>
+    <div class="custom-size-input" id="customSizeWrap">
+      <input type="text" id="customW" value="1024" placeholder="宽">
+      <span>×</span>
+      <input type="text" id="customH" value="1024" placeholder="高">
+    </div>
+    <input type="hidden" id="size" value="1024x1024">
   </div>
-  <div class="custom-size-input" id="customSizeWrap">
-    <input type="text" id="customW" value="1024" placeholder="宽">
-    <span>×</span>
-    <input type="text" id="customH" value="1024" placeholder="高">
-  </div>
-  <input type="hidden" id="size" value="1024x1024">
 
   <button class="btn" id="generateBtn" onclick="generate()">✨ 开始生成</button>
 </div>
@@ -391,11 +443,12 @@ function switchTab(mode){
 
 // Size
 function getEffectiveSize(){return document.getElementById("size").value;}
-function onSizeSelectChange(){
-  const v=document.getElementById("sizeSelect").value;
+function pickRatio(el){
+  document.querySelectorAll(".ratio-chip").forEach(c=>c.classList.remove("active"));
+  el.classList.add("active");
   const wrap=document.getElementById("customSizeWrap");
-  if(v==="custom"){wrap.classList.add("show");updateCustomSize();}
-  else{wrap.classList.remove("show");document.getElementById("size").value=v;}
+  if(el.dataset.val==="custom"){wrap.classList.add("show");updateCustomSize();}
+  else{wrap.classList.remove("show");document.getElementById("size").value=el.dataset.val;}
 }
 function updateCustomSize(){
   const w=document.getElementById("customW").value.trim()||"1024";
