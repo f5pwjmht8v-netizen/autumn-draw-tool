@@ -37,15 +37,6 @@ select option{background:#1a1a2e;color:#fff}
 .tab:hover:not(.active){background:rgba(255,255,255,.05);color:#ccc}
 .tab-panel{display:none}.tab-panel.active{display:block}
 
-/* 4K toggle */
-.toggle-4k{display:inline-flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
-.toggle-4k input{display:none}
-.toggle-4k .track{width:40px;height:22px;border-radius:11px;background:rgba(255,255,255,.12);position:relative;transition:background .2s}
-.toggle-4k .track::after{content:"";position:absolute;width:18px;height:18px;border-radius:50%;background:#666;top:2px;left:2px;transition:all .2s}
-.toggle-4k input:checked+.track{background:linear-gradient(135deg,#f5a623,#e94560)}
-.toggle-4k input:checked+.track::after{left:20px;background:#fff}
-.toggle-4k .toggle-label{font-size:13px;color:#aaa}
-.toggle-4k .badge-4k{padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;background:linear-gradient(135deg,#f5a623,#e94560);color:#fff}
 
 /* Upload */
 .upload-area{border:2px dashed rgba(255,255,255,.15);border-radius:12px;padding:24px;text-align:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
@@ -130,7 +121,8 @@ select option{background:#1a1a2e;color:#fff}
 <body>
 <div class="container">
 <h1>🎨 秋天画图工具</h1>
-<p class="subtitle">文生图 · 图生图 · 小说批量出图 · 4K导出 · 视频配音</p>
+<p class="subtitle">文生图 · 图生图 · 小说批量出图 · 视频配音</p>
+
 
 <div class="card">
   <div class="field">
@@ -351,15 +343,6 @@ select option{background:#1a1a2e;color:#fff}
       </select>
     </div>
   </div>
-  <div class="field" style="margin-bottom:10px">
-    <label class="toggle-4k" onclick="">
-      <input type="checkbox" id="toggle4k" onchange="on4kToggle()">
-      <span class="track"></span>
-      <span class="toggle-label">4K 超清导出</span>
-      <span class="badge-4k">4K</span>
-    </label>
-    <span style="font-size:11px;color:#666;margin-left:8px" id="resInfo">当前: 1024×1024</span>
-  </div>
   <div class="custom-size-input" id="customSizeWrap">
     <input type="text" id="customW" value="1024" placeholder="宽">
     <span>×</span>
@@ -407,35 +390,18 @@ function switchTab(mode){
 }
 
 // Size
-function getEffectiveSize(){
-  let base=document.getElementById("size").value;
-  const is4k=document.getElementById("toggle4k").checked;
-  if(!is4k)return base;
-  const [w,h]=base.split("x").map(Number);
-  const scale=Math.sqrt(8294400/(w*h));
-  const nw=Math.round(Math.min(w*scale,3840)/8)*8;
-  const nh=Math.round(Math.min(h*scale,2160)/8)*8;
-  return nw+"x"+nh;
-}
-function updateResInfo(){
-  const eff=getEffectiveSize();
-  const is4k=document.getElementById("toggle4k").checked;
-  document.getElementById("resInfo").textContent="当前: "+eff+(is4k?" (4K)":"");
-}
+function getEffectiveSize(){return document.getElementById("size").value;}
 function onSizeSelectChange(){
   const v=document.getElementById("sizeSelect").value;
   const wrap=document.getElementById("customSizeWrap");
   if(v==="custom"){wrap.classList.add("show");updateCustomSize();}
   else{wrap.classList.remove("show");document.getElementById("size").value=v;}
-  updateResInfo();
 }
 function updateCustomSize(){
   const w=document.getElementById("customW").value.trim()||"1024";
   const h=document.getElementById("customH").value.trim()||"1024";
   document.getElementById("size").value=w+"x"+h;
-  updateResInfo();
 }
-function on4kToggle(){updateResInfo();}
 document.getElementById("customW").addEventListener("input",updateCustomSize);
 document.getElementById("customH").addEventListener("input",updateCustomSize);
 
@@ -647,7 +613,6 @@ function downloadImg(url){const a=document.createElement("a");a.href=url;a.downl
 function copyUrl(url){navigator.clipboard.writeText(url).then(()=>alert("已复制！")).catch(()=>prompt("复制：",url));}
 function renderHistory(){const card=document.getElementById("historyCard"),c=document.getElementById("history");if(!historyList.length){card.style.display="none";return;}card.style.display="block";c.innerHTML=historyList.map(item=>'<span class="history-item" title="'+item.model+'" onclick="window.open(\''+item.url+'\',\'_blank\')"><img src="'+item.url+'"></span>').join("");}
 document.addEventListener("keydown",e=>{if(e.key==="Enter"&&(e.ctrlKey||e.metaKey))generate();});
-updateResInfo();
 </script>
 </body>
 </html>
