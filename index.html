@@ -406,7 +406,6 @@ select option{background:#1a1a2e;color:#fff}
 
 <script>
 const API_URL="https://www.right.codes/draw/v1/images/generations";
-const CHAT_URL="https://www.right.codes/draw/v1/chat/completions";
 let historyList=[],currentMode="txt2img",refImageBase64=null;
 let selectedPresets=new Set(),lockOptions={preserve_face:true,preserve_expression:true,preserve_skin_color:true};
 let currentAbort=null,loadingTimer=null,loadingSeconds=0;
@@ -445,20 +444,34 @@ function loadVoices(){const sel=document.getElementById("voiceSelect"),voices=sp
 document.getElementById("voiceVolume").addEventListener("input",e=>{document.getElementById("volumeVal").textContent=e.target.value+"%";});
 document.getElementById("voiceRate").addEventListener("input",e=>{document.getElementById("rateVal").textContent=(e.target.value/100).toFixed(1)+"x";});
 
-// AI enhance
-async function enhancePrompt(){
-  const apiKey=document.getElementById("apiKey").value.trim();
+// AI enhance (local)
+function enhancePrompt(){
   const simple=document.getElementById("prompt").value.trim();
-  if(!apiKey)return alert("请先输入 API Key");
   if(!simple)return alert("请先输入简单描述");
-  const btn=event.target;btn.disabled=true;btn.textContent="⏳ 增强中...";
-  try{
-    const resp=await fetch(CHAT_URL,{method:"POST",headers:{"Authorization":"Bearer "+apiKey,"Content-Type":"application/json"},body:JSON.stringify({model:"gpt-image-2",messages:[{role:"system",content:"你是AI绘画提示词专家。用户会给你一个简单的描述，请将其扩展为详细的英文绘画提示词。要求：1.保留用户原意 2.添加画面细节、光影、构图、风格描述 3.直接输出提示词，不要解释 4.长度控制在100词以内"},{role:"user",content:simple}],max_tokens:300})});
-    const data=await resp.json();
-    if(data.choices&&data.choices[0])document.getElementById("prompt").value=data.choices[0].message.content;
-    else alert("增强失败: "+JSON.stringify(data));
-  }catch(e){alert("增强失败: "+e.message);}
-  btn.disabled=false;btn.textContent="✨ AI 增强";
+  const enhanced=localEnhance(simple);
+  document.getElementById("prompt").value=enhanced;
+}
+function localEnhance(text){
+  const styleKeywords={
+    "动漫|二次元|anime":"anime style, masterpiece, best quality, highly detailed, vibrant colors",
+    "写实|真实|照片":"photorealistic, 8k uhd, DSLR photo, soft studio lighting, high detail",
+    "赛博|未来|科幻":"cyberpunk style, neon lights, futuristic, dark atmosphere, cinematic lighting",
+    "水墨|国画|古风":"traditional Chinese ink painting, elegant brushstrokes, minimalist, zen atmosphere",
+    "油画|艺术":"oil painting style, thick brushstrokes, vibrant palette, textured canvas, artistic",
+    "暗黑|哥特|黑暗":"dark fantasy, gothic art, dramatic shadows, mysterious atmosphere",
+    "清新|自然|田园":"soft natural lighting, warm tones, peaceful, high resolution, bokeh",
+    "可爱|萌|q版":"cute, kawaii style, chibi, pastel colors, adorable, soft shading"
+  };
+  let style="masterpiece, best quality, highly detailed, professional lighting, 4k ultra HD";
+  for(const [k,v] of Object.entries(styleKeywords)){
+    if(new RegExp(k,"i").test(text)){style=v;break;}
+  }
+  const extras=[
+    "beautiful composition","sharp focus","vivid colors",
+    "dramatic lighting","intricate details","stunning visuals"
+  ];
+  const shuffled=extras.sort(()=>Math.random()-0.5).slice(0,2);
+  return text+"，"+style+"，"+shuffled.join("，");
 }
 
 // Tab
@@ -552,22 +565,27 @@ async function startNovelBatch(){
 }
 function cancelNovel(){if(novelAbort)novelAbort.abort();}
 
-async function splitScenes(){
-  const apiKey=document.getElementById("apiKey").value.trim();
+function splitScenes(){
   const raw=document.getElementById("novelInput").value.trim();
-  const btn=document.getElementById("splitBtn");
-  if(!apiKey)return alert("请先输入 API Key");
   if(!raw)return alert("请先粘贴小说文本");
-  btn.disabled=true;btn.textContent="⏳ AI 拆分中...";
-  try{
-    const resp=await fetch(CHAT_URL,{method:"POST",headers:{"Authorization":"Bearer "+apiKey,"Content-Type":"application/json"},body:JSON.stringify({model:"gpt-image-2",messages:[{role:"system",content:"你是AI绘画场景拆分专家。用户会给你一段小说/故事文本，请将其拆分为多个独立的视觉画面场景。要求：1.每个场景是一个可直接用于AI绘画的详细画面描述 2.保留原文关键视觉元素 3.每个场景控制在30-80字 4.按故事顺序排列 5.只输出场景列表，每行一个，用数字编号，不要其他解释 6.拆分为5-15个场景"},{role:"user",content:raw}],max_tokens:1000})});
-    const data=await resp.json();
-    if(data.choices&&data.choices[0]){
-      const result=data.choices[0].message.content.trim();
-      document.getElementById("novelInput").value=result;
-    }else alert("拆分失败: "+JSON.stringify(data));
-  }catch(e){alert("拆分失败: "+e.message);}
-  btn.disabled=false;btn.textContent="🤖 AI 自动拆分场景";
+  // If already numbered, keep as is
+  if(/^\d+[\.\、]/.test(raw))return alert("已识别到编号格式，无需拆分");
+  // Split by punctuation into scenes
+  const sentences=raw.split(/[。！？\!\?；;\n]+/).map(s=>s.trim()).filter(s=>s.length>=5);
+  if(sentences.length<2){
+    // Try splitting by commas for long text
+    const parts=raw.split(/[，,]+/).map(s=>s.trim()).filter(s=>s.length>=5);
+    if(parts.length>=2){
+      // Merge short parts
+      const merged=[];let buf="";
+      for(const p of parts){buf+=(buf?"，":"")+p;if(buf.length>=15){merged.push(buf);buf="";}}
+      if(buf)merged.push(buf);
+      document.getElementById("novelInput").value=merged.map((s,i)=>(i+1)+". "+s).join("\n");
+      return;
+    }
+    return alert("文本太短或无法拆分，请手动分行输入");
+  }
+  document.getElementById("novelInput").value=sentences.map((s,i)=>(i+1)+". "+s).join("\n");
 }
 
 function addScene(){
