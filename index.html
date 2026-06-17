@@ -287,9 +287,12 @@ select option{background:#1a1a2e;color:#fff}
         </div>
         <div>
           <label>🗣️ AI 语音</label>
-          <select id="voiceSelect">
-            <option value="">加载中...</option>
-          </select>
+          <div style="display:flex;gap:8px">
+            <select id="voiceSelect" style="flex:1">
+              <option value="">加载中...</option>
+            </select>
+            <button class="btn btn-sm btn-purple" onclick="previewVoice()" style="white-space:nowrap;padding:8px 14px">🔊 试听</button>
+          </div>
         </div>
       </div>
       <div class="field" id="uploadAudioWrap" style="display:none">
@@ -485,6 +488,18 @@ uploadArea.addEventListener("drop",e=>{e.preventDefault();uploadArea.style.borde
 
 // Voice mode
 function onVoiceModeChange(){const m=document.getElementById("voiceMode").value;document.getElementById("uploadAudioWrap").style.display=m==="upload"?"block":"none";}
+function previewVoice(){
+  const voices=speechSynthesis.getVoices();
+  const idx=parseInt(document.getElementById("voiceSelect").value);
+  const voice=voices[idx]||null;
+  const rate=parseInt(document.getElementById("voiceRate").value)/100;
+  const vol=parseInt(document.getElementById("voiceVolume").value)/100;
+  speechSynthesis.cancel();
+  const sample=document.getElementById("narrationText").value.trim().split(/\n/)[0]||"秋天画图工具，AI语音合成试听效果。这是一段测试语音，您可以调整语速和音量。";
+  const utter=new SpeechSynthesisUtterance(sample);
+  if(voice)utter.voice=voice;utter.rate=rate;utter.volume=vol;
+  speechSynthesis.speak(utter);
+}
 
 // Loading
 function showLoading(){const r=document.getElementById("result");loadingSeconds=0;r.innerHTML='<div class="loading-wrap"><div class="loading-anim"><div class="ring"></div><div class="icon">🎨</div></div><div class="loading-title">正在生成图片...</div><div class="loading-timer" id="loadingTimer">0s</div><div class="loading-bar-bg"><div class="loading-bar" id="loadingBar"></div></div><div class="loading-tip" id="loadingTip">'+loadingTips[Math.floor(Math.random()*loadingTips.length)]+'</div><button class="cancel-btn" onclick="cancelGenerate()">✕ 取消</button></div>';
