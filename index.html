@@ -259,7 +259,7 @@ select option{background:#1a1a2e;color:#fff}
     <div id="novelResults"></div>
 
     <!-- 视频合成面板 -->
-    <div class="video-panel" id="videoPanel" style="display:none">
+    <div class="video-panel" id="videoPanel">
       <h3>🎬 视频合成 & 配音</h3>
       <div class="row">
         <div>
@@ -489,7 +489,6 @@ async function startNovelBatch(){
   }
   progressEl.innerHTML='<p class="success-msg">✅ 完成！'+batchResults.length+'/'+scenes.length+' 张成功</p>';
   btn.disabled=false;btn.textContent="🚀 开始批量生成";novelAbort=null;
-  if(batchResults.length>0)document.getElementById("videoPanel").style.display="block";
 }
 function cancelNovel(){if(novelAbort)novelAbort.abort();}
 
