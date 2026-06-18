@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>秋天画图工具</title>
-<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);min-height:100vh;color:#e0e0e0;display:flex;justify-content:center;padding:30px 20px}
@@ -24,13 +22,9 @@ select option{background:#1a1a2e;color:#fff}
 .btn{width:100%;padding:14px;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;transition:all .2s;background:linear-gradient(135deg,#e94560,#c23152);color:#fff;letter-spacing:1px}
 .btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(233,69,96,.35)}
 .btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
-.btn-green{background:linear-gradient(135deg,#4ecdc4,#2ab7a9)}
-.btn-green:hover{box-shadow:0 6px 20px rgba(78,205,196,.35)}
 .btn-purple{background:linear-gradient(135deg,#a855f7,#7c3aed)}
 .btn-purple:hover{box-shadow:0 6px 20px rgba(168,85,247,.35)}
-.btn-orange{background:linear-gradient(135deg,#f5a623,#e8912d)}
 .btn-sm{width:auto;padding:8px 20px;font-size:13px;letter-spacing:0;border-radius:8px}
-.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
 .tabs{display:flex;gap:0;margin-bottom:20px;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,.1)}
 .tab{flex:1;padding:12px;text-align:center;cursor:pointer;font-size:14px;font-weight:500;background:rgba(0,0,0,.2);color:#888;transition:all .2s;border:none}
 .tab.active{background:rgba(233,69,96,.2);color:#e94560}
@@ -75,16 +69,11 @@ select option{background:#1a1a2e;color:#fff}
 .advanced-toggle{font-size:12px;color:#666;cursor:pointer;margin-bottom:10px}
 .advanced-toggle:hover{color:#aaa}
 .advanced-panel{display:none}.advanced-panel.show{display:block}
-
-/* Template library */
 .template-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-top:8px}
 .template-card{border-radius:8px;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.2);cursor:pointer;transition:all .2s;overflow:hidden;text-align:center}
 .template-card:hover{border-color:#e94560;transform:translateY(-2px)}
 .template-card .tpl-icon{font-size:28px;padding:10px 0 4px}
 .template-card .tpl-name{font-size:11px;color:#aaa;padding-bottom:8px}
-.template-card .tpl-desc{display:none}
-
-/* Loading */
 .loading-wrap{text-align:center;width:100%;padding:20px 0}
 .loading-anim{width:60px;height:60px;margin:0 auto 16px;position:relative}
 .loading-anim .ring{width:100%;height:100%;border-radius:50%;border:3px solid rgba(255,255,255,.06);border-top-color:#e94560;border-right-color:#f5a623;animation:spin 1s linear infinite}
@@ -98,27 +87,6 @@ select option{background:#1a1a2e;color:#fff}
 .loading-tip{font-size:12px;color:#666;margin-bottom:16px;min-height:16px}
 .cancel-btn{padding:6px 20px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#888;transition:all .2s}
 .cancel-btn:hover{background:rgba(233,69,96,.15);border-color:#e94560;color:#e94560}
-.batch-progress{margin:16px 0}
-.batch-info{display:flex;justify-content:space-between;font-size:12px;color:#aaa;margin-bottom:6px}
-.batch-bar-bg{width:100%;height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden}
-.batch-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,#4ecdc4,#44a08d);transition:width .3s ease}
-.batch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:16px}
-.batch-card{border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.2);position:relative;cursor:grab}
-.batch-card:active{cursor:grabbing;opacity:.8}
-.batch-card.dragging{opacity:.4;border-color:#e94560}
-.batch-card.drag-over{border:2px dashed #4ecdc4}
-.batch-card img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
-.batch-card .batch-label{padding:6px 8px;font-size:11px;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.batch-card .batch-status{position:absolute;top:6px;right:6px;font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(0,0,0,.6);color:#888}
-.batch-card .batch-status.done{color:#4ecdc4}
-.batch-card .batch-status.fail{color:#e94560}
-.batch-card .batch-idx{position:absolute;top:6px;left:6px;font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(0,0,0,.6);color:#f5a623;font-weight:700}
-.video-panel{margin-top:20px;padding:20px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(0,0,0,.2)}
-.video-panel h3{font-size:15px;color:#a855f7;margin-bottom:14px}
-.video-preview{width:100%;max-height:400px;border-radius:8px;background:#000;margin:12px 0}
-.range-row{display:flex;align-items:center;gap:10px}
-.range-row input[type="range"]{flex:1;accent-color:#a855f7}
-.range-row .range-val{font-size:13px;color:#ccc;min-width:40px;text-align:right}
 .result-area{text-align:center;min-height:200px;display:flex;align-items:center;justify-content:center;flex-direction:column}
 .result-area img{max-width:100%;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.4)}
 .placeholder{color:#555;font-size:14px}
@@ -126,7 +94,6 @@ select option{background:#1a1a2e;color:#fff}
 .actions button{padding:8px 20px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:#ccc;font-size:13px;cursor:pointer;transition:all .2s}
 .actions button:hover{background:rgba(255,255,255,.15);color:#fff}
 .error-msg{color:#e94560;font-size:13px;margin-top:10px}
-.success-msg{color:#4ecdc4;font-size:13px;margin-top:10px}
 .history-item{display:inline-block;margin:6px;cursor:pointer;border-radius:8px;overflow:hidden;border:2px solid transparent;transition:border-color .2s}
 .history-item:hover{border-color:#e94560}
 .history-item img{width:100px;height:100px;object-fit:cover;display:block}
@@ -135,7 +102,7 @@ select option{background:#1a1a2e;color:#fff}
 <body>
 <div class="container">
 <h1>🎨 秋天画图工具</h1>
-<p class="subtitle">文生图 · 图生图 · 小说批量出图 · 视频配音 · 提示词增强</p>
+<p class="subtitle">文生图 · 图生图 · 提示词模板 · AI 增强</p>
 
 <div class="card">
   <div class="field">
@@ -146,10 +113,9 @@ select option{background:#1a1a2e;color:#fff}
   <div class="tabs">
     <button class="tab active" onclick="switchTab('txt2img')">✏️ 文生图</button>
     <button class="tab" onclick="switchTab('img2img')">🖼️ 图生图</button>
-    <button class="tab" onclick="switchTab('novel')">📖 小说批量出图</button>
   </div>
 
-  <!-- ===== 文生图 ===== -->
+  <!-- 文生图 -->
   <div class="tab-panel active" id="panel-txt2img">
     <div class="field">
       <label>📚 提示词模板库 <span style="color:#666;font-weight:400">（点击一键填入）</span></label>
@@ -161,7 +127,7 @@ select option{background:#1a1a2e;color:#fff}
     </div>
   </div>
 
-  <!-- ===== 图生图 ===== -->
+  <!-- 图生图 -->
   <div class="tab-panel" id="panel-img2img">
     <div class="field">
       <label>📤 上传参考图</label>
@@ -247,122 +213,7 @@ select option{background:#1a1a2e;color:#fff}
     </div>
   </div>
 
-  <!-- ===== 小说批量出图 ===== -->
-  <div class="tab-panel" id="panel-novel">
-    <div class="field">
-      <label>📖 小说描述 / 场景列表 <span style="color:#666;font-weight:400">（每行一个场景）</span></label>
-      <textarea id="novelInput" rows="8" placeholder="粘贴小说段落，AI 自动拆分为多个画面场景...&#10;&#10;支持格式：&#10;1. 少女站在樱花树下&#10;2. 她转身露出笑容&#10;&#10;或者直接粘贴一整段小说文本，点击「AI 拆分场景」自动生成"></textarea>
-    </div>
-    <div class="btn-row" style="margin-top:-8px;margin-bottom:14px">
-      <button class="btn btn-sm btn-purple" id="splitBtn" onclick="splitScenes()">🤖 AI 自动拆分场景</button>
-      <button class="btn btn-sm btn-orange" onclick="addScene()">➕ 手动添加场景</button>
-    </div>
-    <div class="row">
-      <div>
-        <label>📝 风格前缀（可选）</label>
-        <input type="text" id="novelStyle" placeholder="例如：高质量插画风格">
-      </div>
-      <div>
-        <label>⏱️ 每张停留</label>
-        <select id="sceneDuration">
-          <option value="3">3 秒</option>
-          <option value="5" selected>5 秒</option>
-          <option value="8">8 秒</option>
-          <option value="10">10 秒</option>
-        </select>
-      </div>
-    </div>
-    <div class="field">
-      <button class="btn btn-green" id="novelStartBtn" onclick="startNovelBatch()">🚀 开始批量生成</button>
-    </div>
-    <div id="novelProgress"></div>
-    <div id="novelResults"></div>
-
-    <!-- 视频合成 -->
-    <div class="video-panel" id="videoPanel">
-      <h3>🎬 视频合成 & 配音</h3>
-      <div class="row">
-        <div>
-          <label>🎤 配音方式</label>
-          <select id="voiceMode" onchange="onVoiceModeChange()">
-            <option value="tts">AI 语音合成</option>
-            <option value="upload">上传自定义音频</option>
-            <option value="none">无配音</option>
-          </select>
-        </div>
-        <div>
-          <label>🗣️ AI 语音</label>
-          <div style="display:flex;gap:8px">
-            <select id="voiceSelect" style="flex:1"><option value="">加载中...</option></select>
-            <button class="btn btn-sm btn-purple" onclick="previewVoice()" style="white-space:nowrap;padding:8px 14px">🔊 试听</button>
-          </div>
-        </div>
-      </div>
-      <div class="field" id="uploadAudioWrap" style="display:none">
-        <label>🎵 上传音频文件</label>
-        <input type="file" id="audioFileInput" accept="audio/*" style="padding:8px">
-      </div>
-      <div class="row">
-        <div>
-          <label>🔊 音量</label>
-          <div class="range-row">
-            <input type="range" id="voiceVolume" min="0" max="100" value="80">
-            <span class="range-val" id="volumeVal">80%</span>
-          </div>
-        </div>
-        <div>
-          <label>⏩ 语速</label>
-          <div class="range-row">
-            <input type="range" id="voiceRate" min="50" max="200" value="100">
-            <span class="range-val" id="rateVal">1.0x</span>
-          </div>
-        </div>
-      </div>
-      <div class="field">
-        <label>🎬 转场效果</label>
-        <select id="transitionType">
-          <option value="none">无转场（直接切换）</option>
-          <option value="fade" selected>淡入淡出</option>
-          <option value="slide-left">向左滑动</option>
-          <option value="slide-up">向上滑动</option>
-          <option value="zoom">缩放过渡</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>📝 每张图旁白 <span style="color:#666;font-weight:400">（留空用场景描述）</span></label>
-        <textarea id="narrationText" rows="3" placeholder="每行对应一张图的旁白"></textarea>
-      </div>
-      <div class="field">
-        <label>💬 字幕叠加 <span style="color:#666;font-weight:400">（视频中显示旁白文字）</span></label>
-        <select id="subtitleMode">
-          <option value="off">关闭字幕</option>
-          <option value="on" selected>开启字幕</option>
-        </select>
-      </div>
-      <div class="row">
-        <div>
-          <label>🎵 背景音乐</label>
-          <select id="bgmMode" onchange="document.getElementById('uploadBgmWrap').style.display=this.value==='upload'?'block':'none'">
-            <option value="none">无</option>
-            <option value="upload">上传音乐</option>
-          </select>
-        </div>
-        <div id="uploadBgmWrap" style="display:none">
-          <label>&nbsp;</label>
-          <input type="file" id="bgmFileInput" accept="audio/*" style="padding:8px">
-        </div>
-      </div>
-      <div class="btn-row">
-        <button class="btn btn-purple btn-sm" onclick="previewVideo()">👁️ 预览视频</button>
-        <button class="btn btn-green btn-sm" onclick="exportVideo('webm')">📦 导出 WebM</button>
-        <button class="btn btn-orange btn-sm" onclick="exportGif()">🎞️ 导出 GIF</button>
-        <button class="btn btn-sm" style="background:linear-gradient(135deg,#f5a623,#e94560)" onclick="downloadAllBatch()">💾 打包下载</button>
-      </div>
-      <video class="video-preview" id="videoPreview" controls style="display:none"></video>
-    </div>
-  </div>
-
-  <!-- ===== 公共选项 ===== -->
+  <!-- 公共选项 -->
   <div class="row" style="margin-top:16px">
     <div>
       <label>🤖 模型</label>
@@ -409,10 +260,8 @@ const API_URL="https://www.right.codes/draw/v1/images/generations";
 let historyList=[],currentMode="txt2img",refImageBase64=null;
 let selectedPresets=new Set(),lockOptions={preserve_face:true,preserve_expression:true,preserve_skin_color:true};
 let currentAbort=null,loadingTimer=null,loadingSeconds=0;
-let novelAbort=null,batchResults=[];
 const loadingTips=["AI 正在理解你的创意意图...","正在调配色彩与光影...","画笔飞舞中...","细节正在浮现...","灵感碰撞中...","精心打磨每一处...","大师级作品需要时间...","构图与色调融合中...","画面逐渐成型...","最后润色..."];
 
-// Templates
 const TEMPLATES=[
   {icon:"🌸",name:"日系动漫",prompt:"anime style, masterpiece, best quality, highly detailed, vibrant colors, soft lighting, beautiful detailed eyes, cherry blossom background"},
   {icon:"📸",name:"写实摄影",prompt:"photorealistic, 8k uhd, DSLR photo, soft studio lighting, shallow depth of field, high detail, professional photography"},
@@ -428,78 +277,46 @@ const TEMPLATES=[
   {icon:"🎎",name:"浮世绘",prompt:"Japanese ukiyo-e style, woodblock print, traditional, waves, cherry blossoms, Hokusai inspired, elegant composition"}
 ];
 
-// Init
 (function(){
   const s=localStorage.getItem("rc_draw_key");if(s)document.getElementById("apiKey").value=s;
   const grid=document.getElementById("templateGrid");
-  TEMPLATES.forEach((t,i)=>{
+  TEMPLATES.forEach(t=>{
     const el=document.createElement("div");el.className="template-card";el.innerHTML='<div class="tpl-icon">'+t.icon+'</div><div class="tpl-name">'+t.name+'</div>';
     el.onclick=()=>{document.getElementById("prompt").value=t.prompt;};
     grid.appendChild(el);
   });
-  loadVoices();
 })();
-speechSynthesis.onvoiceschanged=loadVoices;
-function loadVoices(){const sel=document.getElementById("voiceSelect"),voices=speechSynthesis.getVoices();sel.innerHTML="";voices.forEach((v,i)=>{const o=document.createElement("option");o.value=i;o.textContent=v.name+" ("+v.lang+")";sel.appendChild(o);});if(!voices.length)sel.innerHTML='<option value="">无可用语音</option>';}
-document.getElementById("voiceVolume").addEventListener("input",e=>{document.getElementById("volumeVal").textContent=e.target.value+"%";});
-document.getElementById("voiceRate").addEventListener("input",e=>{document.getElementById("rateVal").textContent=(e.target.value/100).toFixed(1)+"x";});
 
-// AI enhance (local)
 function enhancePrompt(){
   const simple=document.getElementById("prompt").value.trim();
   if(!simple)return alert("请先输入简单描述");
-  const enhanced=localEnhance(simple);
-  document.getElementById("prompt").value=enhanced;
-}
-function localEnhance(text){
-  const styleKeywords={
-    "动漫|二次元|anime":"anime style, masterpiece, best quality, highly detailed, vibrant colors",
-    "写实|真实|照片":"photorealistic, 8k uhd, DSLR photo, soft studio lighting, high detail",
-    "赛博|未来|科幻":"cyberpunk style, neon lights, futuristic, dark atmosphere, cinematic lighting",
-    "水墨|国画|古风":"traditional Chinese ink painting, elegant brushstrokes, minimalist, zen atmosphere",
-    "油画|艺术":"oil painting style, thick brushstrokes, vibrant palette, textured canvas, artistic",
-    "暗黑|哥特|黑暗":"dark fantasy, gothic art, dramatic shadows, mysterious atmosphere",
-    "清新|自然|田园":"soft natural lighting, warm tones, peaceful, high resolution, bokeh",
-    "可爱|萌|q版":"cute, kawaii style, chibi, pastel colors, adorable, soft shading"
-  };
+  const styleKeywords={"动漫|二次元|anime":"anime style, masterpiece, best quality, highly detailed, vibrant colors","写实|真实|照片":"photorealistic, 8k uhd, DSLR photo, soft studio lighting, high detail","赛博|未来|科幻":"cyberpunk style, neon lights, futuristic, dark atmosphere, cinematic lighting","水墨|国画|古风":"traditional Chinese ink painting, elegant brushstrokes, minimalist, zen atmosphere","油画|艺术":"oil painting style, thick brushstrokes, vibrant palette, textured canvas, artistic","暗黑|哥特|黑暗":"dark fantasy, gothic art, dramatic shadows, mysterious atmosphere","清新|自然|田园":"soft natural lighting, warm tones, peaceful, high resolution, bokeh","可爱|萌|q版":"cute, kawaii style, chibi, pastel colors, adorable, soft shading"};
   let style="masterpiece, best quality, highly detailed, professional lighting, 4k ultra HD";
-  for(const [k,v] of Object.entries(styleKeywords)){
-    if(new RegExp(k,"i").test(text)){style=v;break;}
-  }
-  const extras=[
-    "beautiful composition","sharp focus","vivid colors",
-    "dramatic lighting","intricate details","stunning visuals"
-  ];
+  for(const [k,v] of Object.entries(styleKeywords)){if(new RegExp(k,"i").test(simple)){style=v;break;}}
+  const extras=["beautiful composition","sharp focus","vivid colors","dramatic lighting","intricate details","stunning visuals"];
   const shuffled=extras.sort(()=>Math.random()-0.5).slice(0,2);
-  return text+"，"+style+"，"+shuffled.join("，");
+  document.getElementById("prompt").value=simple+"，"+style+"，"+shuffled.join("，");
 }
 
-// Tab
 function switchTab(mode){
   currentMode=mode;
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
   document.querySelectorAll(".tab-panel").forEach(p=>p.classList.remove("active"));
-  const tabs=document.querySelectorAll(".tab");
-  if(mode==="txt2img"){tabs[0].classList.add("active");document.getElementById("panel-txt2img").classList.add("active");}
-  else if(mode==="img2img"){tabs[1].classList.add("active");document.getElementById("panel-img2img").classList.add("active");}
-  else{tabs[2].classList.add("active");document.getElementById("panel-novel").classList.add("active");}
+  if(mode==="txt2img"){document.querySelectorAll(".tab")[0].classList.add("active");document.getElementById("panel-txt2img").classList.add("active");}
+  else{document.querySelectorAll(".tab")[1].classList.add("active");document.getElementById("panel-img2img").classList.add("active");}
 }
 
-// Size
-function getEffectiveSize(){return document.getElementById("size").value;}
 function pickRatio(el){document.querySelectorAll(".ratio-chip").forEach(c=>c.classList.remove("active"));el.classList.add("active");const w=document.getElementById("customSizeWrap");if(el.dataset.val==="custom"){w.classList.add("show");updateCustomSize();}else{w.classList.remove("show");document.getElementById("size").value=el.dataset.val;}}
 function updateCustomSize(){document.getElementById("size").value=(document.getElementById("customW").value.trim()||"1024")+"x"+(document.getElementById("customH").value.trim()||"1024");}
 document.getElementById("customW").addEventListener("input",updateCustomSize);
 document.getElementById("customH").addEventListener("input",updateCustomSize);
 
-// Presets
 function togglePreset(el){const c=el.dataset.cmd;if(selectedPresets.has(c)){selectedPresets.delete(c);el.classList.remove("active");}else{selectedPresets.add(c);el.classList.add("active");}buildFinalPrompt();}
 function toggleLock(el){const k=el.dataset.key;if(k==="no_scale_rotate"){el.classList.toggle("active");}else{if(lockOptions[k]){delete lockOptions[k];el.classList.remove("active");}else{lockOptions[k]=true;el.classList.add("active");}}buildFinalPrompt();}
 function toggleAdvanced(){document.getElementById("advancedPanel").classList.toggle("show");}
 function buildFinalPrompt(){const p=[];if(selectedPresets.size>0)p.push(...selectedPresets);const l=[];if(lockOptions.preserve_face)l.push("严格保持原始面部特征不变");if(lockOptions.preserve_expression)l.push("preserve_expression=true");if(lockOptions.preserve_skin_color)l.push("preserve_skin_color=true");if(document.querySelector('.toggle-chip[data-key="no_scale_rotate"]').classList.contains("active"))l.push("no_scale_rotate_translate=true");if(l.length)p.push(l.join("，"));const c=document.getElementById("img2imgPrompt").value.trim();if(c)p.push(c);document.getElementById("finalPrompt").value=p.join("。\n");}
 document.getElementById("img2imgPrompt").addEventListener("input",buildFinalPrompt);
 
-// Upload
 function handleImageUpload(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{refImageBase64=ev.target.result;document.getElementById("previewImg").src=refImageBase64;document.getElementById("uploadArea").classList.add("has-image");};r.readAsDataURL(f);}
 function removeImage(e){e.stopPropagation();e.preventDefault();refImageBase64=null;document.getElementById("previewImg").src="";document.getElementById("uploadArea").classList.remove("has-image");document.getElementById("imageInput").value="";}
 const ua=document.getElementById("uploadArea");
@@ -507,18 +324,13 @@ ua.addEventListener("dragover",e=>{e.preventDefault();ua.style.borderColor="#e94
 ua.addEventListener("dragleave",()=>{ua.style.borderColor="";});
 ua.addEventListener("drop",e=>{e.preventDefault();ua.style.borderColor="";const f=e.dataTransfer.files[0];if(f&&f.type.startsWith("image/")){document.getElementById("imageInput").files=e.dataTransfer.files;handleImageUpload({target:{files:[f]}});}});
 
-function onVoiceModeChange(){document.getElementById("uploadAudioWrap").style.display=document.getElementById("voiceMode").value==="upload"?"block":"none";}
-function previewVoice(){speechSynthesis.cancel();const voices=speechSynthesis.getVoices(),idx=parseInt(document.getElementById("voiceSelect").value),voice=voices[idx]||null;const rate=parseInt(document.getElementById("voiceRate").value)/100,vol=parseInt(document.getElementById("voiceVolume").value)/100;const txt=document.getElementById("narrationText").value.trim().split(/\n/)[0]||"秋天画图工具，AI语音合成试听效果。";const u=new SpeechSynthesisUtterance(txt);if(voice)u.voice=voice;u.rate=rate;u.volume=vol;speechSynthesis.speak(u);}
-
-// Loading
 function showLoading(){const r=document.getElementById("result");loadingSeconds=0;r.innerHTML='<div class="loading-wrap"><div class="loading-anim"><div class="ring"></div><div class="icon">🎨</div></div><div class="loading-title">正在生成...</div><div class="loading-timer" id="loadingTimer">0s</div><div class="loading-bar-bg"><div class="loading-bar" id="loadingBar"></div></div><div class="loading-tip" id="loadingTip">'+loadingTips[Math.floor(Math.random()*loadingTips.length)]+'</div><button class="cancel-btn" onclick="cancelGenerate()">✕ 取消</button></div>';
 loadingTimer=setInterval(()=>{loadingSeconds++;const el=document.getElementById("loadingTimer"),bar=document.getElementById("loadingBar"),tip=document.getElementById("loadingTip");if(el)el.textContent=loadingSeconds+"s";if(bar)bar.style.width=Math.min(90,(1-Math.exp(-loadingSeconds/20))*100)+"%";if(tip&&loadingSeconds%8===0){tip.style.opacity=0;setTimeout(()=>{if(tip){tip.textContent=loadingTips[Math.floor(Math.random()*loadingTips.length)];tip.style.opacity=1;}},300);}},1000);}
 function hideLoading(){if(loadingTimer){clearInterval(loadingTimer);loadingTimer=null;}}
 function cancelGenerate(){if(currentAbort)currentAbort.abort();}
 
-// Generate
 async function generate(){
-  const apiKey=document.getElementById("apiKey").value.trim(),size=getEffectiveSize(),model=document.getElementById("model").value,btn=document.getElementById("generateBtn");
+  const apiKey=document.getElementById("apiKey").value.trim(),size=document.getElementById("size").value,model=document.getElementById("model").value,btn=document.getElementById("generateBtn");
   if(!apiKey)return showError("请输入 API Key");localStorage.setItem("rc_draw_key",apiKey);
   let prompt,body;
   if(currentMode==="txt2img"){prompt=document.getElementById("prompt").value.trim();if(!prompt)return showError("请输入提示词");body={model,prompt,size,response_format:"url"};}
@@ -534,200 +346,6 @@ async function generate(){
   finally{btn.disabled=false;btn.textContent="✨ 开始生成";currentAbort=null;}
 }
 
-// Novel batch
-async function startNovelBatch(){
-  const apiKey=document.getElementById("apiKey").value.trim(),model=document.getElementById("model").value,size=getEffectiveSize();
-  const raw=document.getElementById("novelInput").value.trim(),style=document.getElementById("novelStyle").value.trim(),btn=document.getElementById("novelStartBtn");
-  if(!apiKey)return alert("请输入 API Key");localStorage.setItem("rc_draw_key",apiKey);
-  if(!raw)return alert("请输入小说描述");
-  let scenes=raw.split(/\n/).map(s=>s.replace(/^\d+[\.\、\)\s]+/,"").trim()).filter(s=>s.length>0);
-  if(!scenes.length)return alert("未识别到场景");
-  btn.disabled=true;btn.textContent="⏳ 批量生成中...";batchResults=[];novelAbort=new AbortController();
-  const pEl=document.getElementById("novelProgress"),rEl=document.getElementById("novelResults");
-  rEl.innerHTML='<div class="batch-grid" id="batchGrid">'+scenes.map((s,i)=>'<div class="batch-card" draggable="true" data-idx="'+i+'" id="batchCard'+i+'" ondragstart="batchDragStart(event)" ondragover="batchDragOver(event)" ondrop="batchDrop(event)" ondragend="batchDragEnd(event)"><div style="aspect-ratio:1;background:rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#555;font-size:12px;padding:8px;text-align:center">'+escHtml(s.substring(0,50))+'</div><div class="batch-label">#'+(i+1)+' '+escHtml(s.substring(0,25))+'</div><span class="batch-idx">'+(i+1)+'</span><span class="batch-status" id="batchStatus'+i+'">等待</span></div>').join("")+'</div>';
-  for(let i=0;i<scenes.length;i++){
-    if(novelAbort.signal.aborted)break;
-    const prompt=style?(style+"，"+scenes[i]):scenes[i];
-    pEl.innerHTML='<div class="batch-progress"><div class="batch-info"><span>第 '+(i+1)+'/'+scenes.length+' 张</span><span id="batchTimer">0s</span></div><div class="batch-bar-bg"><div class="batch-bar" id="batchBar" style="width:0%"></div></div></div><button class="cancel-btn" onclick="cancelNovel()" style="margin-top:8px">✕ 取消</button>';
-    const sEl=document.getElementById("batchStatus"+i);if(sEl){sEl.textContent="生成中";sEl.style.color="#f5a623";}
-    let sec=0;const t=setInterval(()=>{sec++;const te=document.getElementById("batchTimer"),be=document.getElementById("batchBar");if(te)te.textContent=sec+"s";if(be)be.style.width=Math.min(90,(1-Math.exp(-sec/15))*100)+"%";},1000);
-    try{
-      const resp=await fetch(API_URL,{method:"POST",headers:{"Authorization":"Bearer "+apiKey,"Content-Type":"application/json"},body:JSON.stringify({model,prompt,size,response_format:"url"}),signal:novelAbort.signal});
-      const data=await resp.json();clearInterval(t);if(data.error)throw new Error(data.error.message||JSON.stringify(data.error));
-      const url=data.data[0].url;batchResults.push({url,scene:scenes[i],index:i});
-      const card=document.getElementById("batchCard"+i);if(card)card.querySelector("div").innerHTML='<img src="'+url+'" style="width:100%;aspect-ratio:1;object-fit:cover;cursor:pointer" onclick="window.open(\''+url+'\',\'_blank\')">';
-      if(sEl){sEl.textContent="✓";sEl.classList.add("done");sEl.style.color="";}
-    }catch(e){clearInterval(t);if(e.name==="AbortError"){if(sEl){sEl.textContent="取消";sEl.style.color="#888";}break;}if(sEl){sEl.textContent="✗";sEl.classList.add("fail");}}
-    const bar=document.getElementById("batchBar");if(bar)bar.style.width=((i+1)/scenes.length*100)+"%";
-  }
-  pEl.innerHTML='<p class="success-msg">✅ 完成！'+batchResults.length+'/'+scenes.length+' 张成功 · 可拖拽调整顺序</p>';
-  btn.disabled=false;btn.textContent="🚀 开始批量生成";novelAbort=null;
-}
-function cancelNovel(){if(novelAbort)novelAbort.abort();}
-
-function splitScenes(){
-  const raw=document.getElementById("novelInput").value.trim();
-  if(!raw)return alert("请先粘贴小说文本");
-  // If already numbered, keep as is
-  if(/^\d+[\.\、]/.test(raw))return alert("已识别到编号格式，无需拆分");
-  // Split by punctuation into scenes
-  const sentences=raw.split(/[。！？\!\?；;\n]+/).map(s=>s.trim()).filter(s=>s.length>=5);
-  if(sentences.length<2){
-    // Try splitting by commas for long text
-    const parts=raw.split(/[，,]+/).map(s=>s.trim()).filter(s=>s.length>=5);
-    if(parts.length>=2){
-      // Merge short parts
-      const merged=[];let buf="";
-      for(const p of parts){buf+=(buf?"，":"")+p;if(buf.length>=15){merged.push(buf);buf="";}}
-      if(buf)merged.push(buf);
-      document.getElementById("novelInput").value=merged.map((s,i)=>(i+1)+". "+s).join("\n");
-      return;
-    }
-    return alert("文本太短或无法拆分，请手动分行输入");
-  }
-  document.getElementById("novelInput").value=sentences.map((s,i)=>(i+1)+". "+s).join("\n");
-}
-
-function addScene(){
-  const ta=document.getElementById("novelInput");
-  const lines=ta.value.trim().split(/\n/).filter(s=>s.trim());
-  const next=lines.length+1;
-  ta.value+=(ta.value.trim()?"\n":"")+next+". ";
-  ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);
-}
-
-// Drag & drop for batch
-let dragIdx=null;
-function batchDragStart(e){dragIdx=parseInt(e.currentTarget.dataset.idx);e.currentTarget.classList.add("dragging");e.dataTransfer.effectAllowed="move";}
-function batchDragOver(e){e.preventDefault();e.currentTarget.classList.add("drag-over");}
-function batchDrop(e){e.preventDefault();e.currentTarget.classList.remove("drag-over");const toIdx=parseInt(e.currentTarget.dataset.idx);if(dragIdx===null||dragIdx===toIdx)return;
-  const grid=document.getElementById("batchGrid");const cards=[...grid.children];
-  const fromCard=cards[dragIdx],toCard=cards[toIdx];
-  if(dragIdx<toIdx)grid.insertBefore(fromCard,toCard.nextSibling);else grid.insertBefore(fromCard,toCard);
-  // Reindex
-  const item=batchResults.splice(dragIdx,1)[0];batchResults.splice(toIdx,0,item);
-  [...grid.children].forEach((c,i)=>{c.dataset.idx=i;const idx=c.querySelector(".batch-idx");if(idx)idx.textContent=i+1;const label=c.querySelector(".batch-label");if(label)label.textContent="#"+(i+1)+" "+(batchResults[i]?batchResults[i].scene.substring(0,25):"");});
-}
-function batchDragEnd(e){e.currentTarget.classList.remove("dragging");document.querySelectorAll(".batch-card").forEach(c=>c.classList.remove("drag-over"));dragIdx=null;}
-
-// Video
-async function previewVideo(){await buildVideo(false);}
-async function exportVideo(){await buildVideo(true);}
-async function exportGif(){await buildGif();}
-
-async function buildVideo(download){
-  if(!batchResults.length)return alert("请先批量生成图片");
-  const btn=event.target;btn.disabled=true;btn.textContent="⏳ 合成中...";
-  const dur=parseInt(document.getElementById("sceneDuration").value);
-  const mode=document.getElementById("voiceMode").value;
-  const vol=parseInt(document.getElementById("voiceVolume").value)/100;
-  const rate=parseInt(document.getElementById("voiceRate").value)/100;
-  const trans=document.getElementById("transitionType").value;
-  const subMode=document.getElementById("subtitleMode").value;
-  const narrRaw=document.getElementById("narrationText").value.trim();
-  const narrations=narrRaw?narrRaw.split(/\n/):[];
-
-  // Load images
-  const images=[];
-  for(const r of batchResults){const img=new Image();img.crossOrigin="anonymous";await new Promise((res,rej)=>{img.onload=res;img.onerror=rej;img.src=r.url;});images.push(img);}
-  const w=images[0].naturalWidth,h=images[0].naturalHeight;
-  const canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;
-  const ctx=canvas.getContext("2d");
-  const stream=canvas.captureStream(30);
-  const chunks=[];
-  const recorder=new MediaRecorder(stream,{mimeType:"video/webm;codecs=vp9"});
-  recorder.ondataavailable=e=>{if(e.data.size>0)chunks.push(e.data);};
-  recorder.start();
-
-  const fps=30,transFrames=Math.floor(fps*0.5);
-  for(let i=0;i<images.length;i++){
-    const narr=narrations[i]||batchResults[i].scene||"";
-    const totalFrames=dur*fps;
-    for(let f=0;f<totalFrames;f++){
-      ctx.clearRect(0,0,w,h);
-      let alpha=1;
-      // Transition
-      if(trans==="fade"){
-        if(f<transFrames)alpha=f/transFrames;
-        else if(f>totalFrames-transFrames)alpha=(totalFrames-f)/transFrames;
-      }
-      ctx.globalAlpha=Math.max(0,Math.min(1,alpha));
-      // Slide
-      if(trans==="slide-left"){
-        if(f<transFrames){const p=f/transFrames;ctx.drawImage(images[i],-w*(1-p),0,w,h);if(i>0)ctx.drawImage(images[i-1],-w*p,0,w,h);ctx.globalAlpha=1;drawSub();continue;}
-      }else if(trans==="slide-up"){
-        if(f<transFrames){const p=f/transFrames;ctx.drawImage(images[i],0,h*(1-p),w,h);if(i>0)ctx.drawImage(images[i-1],0,-h*p,w,h);ctx.globalAlpha=1;drawSub();continue;}
-      }else if(trans==="zoom"){
-        if(f<transFrames){const p=f/transFrames,s=1+0.3*(1-p);ctx.save();ctx.translate(w/2,h/2);ctx.scale(s,s);ctx.globalAlpha=p;ctx.drawImage(images[i],-w/2,-h/2,w,h);ctx.restore();ctx.globalAlpha=1;drawSub();continue;}
-      }
-      ctx.drawImage(images[i],0,0,w,h);
-      ctx.globalAlpha=1;
-      drawSub();
-      function drawSub(){
-        if(subMode==="on"&&narr){
-          ctx.fillStyle="rgba(0,0,0,0.6)";ctx.fillRect(0,h-60,w,60);
-          ctx.fillStyle="#fff";ctx.font=Math.floor(w/40)+"px sans-serif";ctx.textAlign="center";
-          const lines=wrapText(narr,w-40);lines.forEach((line,li)=>{ctx.fillText(line,w/2,h-60+22+li*28);});
-          ctx.textAlign="left";
-        }
-      }
-      await new Promise(r=>requestAnimationFrame(r));
-    }
-    // TTS
-    if(mode==="tts"&&narr){
-      try{const voices=speechSynthesis.getVoices(),vidx=parseInt(document.getElementById("voiceSelect").value);
-      const u=new SpeechSynthesisUtterance(narr);if(voices[vidx])u.voice=voices[vidx];u.rate=rate;u.volume=vol;
-      speechSynthesis.speak(u);await new Promise(r=>{u.onend=r;u.onerror=r;setTimeout(r,narr.length*120);});}catch(e){}
-    }
-  }
-  recorder.stop();
-  const blob=await new Promise(r=>{recorder.onstop=()=>r(new Blob(chunks,{type:"video/webm"}));});
-  const url=URL.createObjectURL(blob);
-  const vid=document.getElementById("videoPreview");vid.src=url;vid.style.display="block";
-  if(download){const a=document.createElement("a");a.href=url;a.download="秋天画图工具_视频.webm";a.click();}
-  btn.disabled=false;btn.textContent=download?"📦 导出 WebM":"👁️ 预览视频";
-}
-
-function wrapText(text,maxW){const words=text.split("");const lines=[];let line="";for(const ch of words){if((line+ch).length*20>maxW){lines.push(line);line=ch;}else line+=ch;}if(line)lines.push(line);return lines.slice(0,2);}
-
-async function buildGif(){
-  if(!batchResults.length)return alert("请先批量生成图片");
-  const btn=event.target;btn.disabled=true;btn.textContent="⏳ 生成 GIF 中...";
-  const dur=parseInt(document.getElementById("sceneDuration").value)*1000;
-  const images=[];
-  for(const r of batchResults){const img=new Image();img.crossOrigin="anonymous";await new Promise((res,rej)=>{img.onload=res;img.onerror=rej;img.src=r.url;});images.push(img);}
-  const gw=480,gh=Math.round(gw*images[0].naturalHeight/images[0].naturalWidth);
-  const canvas=document.createElement("canvas");canvas.width=gw;canvas.height=gh;
-  const ctx=canvas.getContext("2d");
-  // Use canvas to create a simple animated approach - download as individual frames in zip
-  const zip=new JSZip();const folder=zip.folder("gif_frames");
-  for(let i=0;i<images.length;i++){
-    const frames=Math.ceil(dur/200);
-    for(let f=0;f<frames;f++){
-      ctx.clearRect(0,0,gw,gh);
-      ctx.drawImage(images[i],0,0,gw,gh);
-      const blob=await new Promise(r=>canvas.toBlob(r,"image/png"));
-      folder.file("frame_"+String(i*frames+f).padStart(4,"0")+".png",blob);
-    }
-  }
-  const content=await zip.generateAsync({type:"blob"});
-  saveAs(content,"秋天画图工具_GIF帧.zip");
-  btn.disabled=false;btn.textContent="🎞️ 导出 GIF";
-  alert("GIF 帧已打包下载！可用在线工具（如 ezgif.com）将帧合成为 GIF 动图。");
-}
-
-// Download all
-async function downloadAllBatch(){
-  if(!batchResults.length)return alert("没有图片");
-  const btn=event.target;btn.disabled=true;btn.textContent="⏳ 打包中...";
-  const zip=new JSZip(),folder=zip.folder("秋天画图工具");
-  for(const r of batchResults){try{const resp=await fetch(r.url);const blob=await resp.blob();folder.file("scene_"+(r.index+1)+".png",blob);}catch(e){}}
-  const content=await zip.generateAsync({type:"blob"});saveAs(content,"秋天画图工具.zip");
-  btn.disabled=false;btn.textContent="💾 打包下载";
-}
-
-// Helpers
-function escHtml(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 function showError(msg){document.getElementById("result").innerHTML='<p class="error-msg">⚠️ '+msg+'</p>';}
 function downloadImg(url){const a=document.createElement("a");a.href=url;a.download="draw_"+Date.now()+".png";a.click();}
 function copyUrl(url){navigator.clipboard.writeText(url).then(()=>alert("已复制！"));}
