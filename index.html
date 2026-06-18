@@ -106,8 +106,12 @@ select option{background:#1a1a2e;color:#fff}
 
 <div class="card">
   <div class="field">
-    <label>🔑 API Key</label>
-    <input type="text" id="apiKey" value="" placeholder="请输入你的 API Key（sk-xxxxx）">
+    <label>🔑 画图 API Key</label>
+    <input type="text" id="apiKey" value="" placeholder="Right Code 画图 API Key（sk-xxxxx）">
+  </div>
+  <div class="field">
+    <label>🧠 DeepSeek API Key <span style="color:#666;font-weight:400">（用于 AI 增强提示词）</span></label>
+    <input type="text" id="deepseekKey" value="" placeholder="DeepSeek API Key（sk-xxxxx）">
   </div>
 
   <div class="tabs">
@@ -279,6 +283,7 @@ const TEMPLATES=[
 
 (function(){
   const s=localStorage.getItem("rc_draw_key");if(s)document.getElementById("apiKey").value=s;
+  const ds=localStorage.getItem("rc_ds_key");if(ds)document.getElementById("deepseekKey").value=ds;
   const grid=document.getElementById("templateGrid");
   TEMPLATES.forEach(t=>{
     const el=document.createElement("div");el.className="template-card";el.innerHTML='<div class="tpl-icon">'+t.icon+'</div><div class="tpl-name">'+t.name+'</div>';
@@ -287,15 +292,20 @@ const TEMPLATES=[
   });
 })();
 
-function enhancePrompt(){
+async function enhancePrompt(){
   const simple=document.getElementById("prompt").value.trim();
   if(!simple)return alert("请先输入简单描述");
-  const styleKeywords={"动漫|二次元|anime":"anime style, masterpiece, best quality, highly detailed, vibrant colors","写实|真实|照片":"photorealistic, 8k uhd, DSLR photo, soft studio lighting, high detail","赛博|未来|科幻":"cyberpunk style, neon lights, futuristic, dark atmosphere, cinematic lighting","水墨|国画|古风":"traditional Chinese ink painting, elegant brushstrokes, minimalist, zen atmosphere","油画|艺术":"oil painting style, thick brushstrokes, vibrant palette, textured canvas, artistic","暗黑|哥特|黑暗":"dark fantasy, gothic art, dramatic shadows, mysterious atmosphere","清新|自然|田园":"soft natural lighting, warm tones, peaceful, high resolution, bokeh","可爱|萌|q版":"cute, kawaii style, chibi, pastel colors, adorable, soft shading"};
-  let style="masterpiece, best quality, highly detailed, professional lighting, 4k ultra HD";
-  for(const [k,v] of Object.entries(styleKeywords)){if(new RegExp(k,"i").test(simple)){style=v;break;}}
-  const extras=["beautiful composition","sharp focus","vivid colors","dramatic lighting","intricate details","stunning visuals"];
-  const shuffled=extras.sort(()=>Math.random()-0.5).slice(0,2);
-  document.getElementById("prompt").value=simple+"，"+style+"，"+shuffled.join("，");
+  const dsKey=document.getElementById("deepseekKey").value.trim();
+  if(!dsKey)return alert("请先输入 DeepSeek API Key");
+  const btn=event.target;btn.disabled=true;btn.textContent="⏳ 增强中...";
+  localStorage.setItem("rc_ds_key",dsKey);
+  try{
+    const resp=await fetch("https://api.deepseek.com/v1/chat/completions",{method:"POST",headers:{"Authorization":"Bearer "+dsKey,"Content-Type":"application/json"},body:JSON.stringify({model:"deepseek-chat",messages:[{role:"system",content:"你是AI绘画提示词专家。用户给你一个简单描述，请将其扩展为详细的英文绘画提示词。要求：1.保留用户原意 2.添加画面细节、光影、构图、风格描述 3.直接输出提示词，不要解释 4.长度控制在100词以内"},{role:"user",content:simple}],max_tokens:300,temperature:0.7})});
+    const data=await resp.json();
+    if(data.choices&&data.choices[0])document.getElementById("prompt").value=data.choices[0].message.content;
+    else alert("增强失败: "+JSON.stringify(data));
+  }catch(e){alert("增强失败: "+e.message);}
+  btn.disabled=false;btn.textContent="✨ AI 增强";
 }
 
 function switchTab(mode){
